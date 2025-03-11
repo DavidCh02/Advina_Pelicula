@@ -1,0 +1,137 @@
+{
+  "accion": [
+    {
+      "title": "Misión Imposible",
+      "emojis": "🏃♂️💣🏢",
+      "options": ["Misión Imposible", "El Código Da Vinci", "Duro de Matar", "La Jungla de Cristal"]
+    },
+    {
+      "title": "Matrix",
+      "emojis": "👨‍💻🕶️💊",
+      "options": ["Matrix", "Hackers", "Tron", "Inception"]
+    },
+    {
+      "title": "John Wick",
+      "emojis": "🔫🐕💰",
+      "options": ["John Wick", "Transporter", "Taken", "El Justiciero"]
+    },
+    {
+      "title": "Fast & Furious",
+      "emojis": "🏎️👨‍👩‍👧‍👦💨",
+      "options": ["Fast & Furious", "Need for Speed", "Gone in 60 Seconds", "Death Race"]
+    },
+    {
+      "title": "Die Hard",
+      "emojis": "👮🏢💥",
+      "options": ["Die Hard", "Speed", "Air Force One", "Con Air"]
+    }
+  ],
+  "animacion": [
+    {
+      "title": "Toy Story",
+      "emojis": "🤠🚀🧸",
+      "options": ["Toy Story", "Shrek", "Monsters Inc.", "Cars"]
+    },
+    {
+      "title": "Frozen",
+      "emojis": "👸❄️☃️",
+      "options": ["Frozen", "Moana", "Tangled", "Brave"]
+    },
+    {
+      "title": "Finding Nemo",
+      "emojis": "🐠🌊🦈",
+      "options": ["Finding Nemo", "The Little Mermaid", "Shark Tale", "Big Fish"]
+    },
+    {
+      "title": "Up",
+      "emojis": "🎈🏠👴",
+      "options": ["Up", "Inside Out", "WALL-E", "Ratatouille"]
+    },
+    {
+      "title": "Lion King",
+      "emojis": "🦁👑🌅",
+      "options": ["Lion King", "Madagascar", "Ice Age", "Kung Fu Panda"]
+    }
+  ],
+  "terror": [
+    {
+      "title": "El Exorcista",
+      "emojis": "👧👻✝️",
+      "options": ["El Exorcista", "Poltergeist", "La Profecía", "El Conjuro"]
+    },
+    {
+      "title": "IT",
+      "emojis": "🤡🎈🌧️",
+      "options": ["IT", "Eso", "Payasos Asesinos", "El Circo del Terror"]
+    },
+    {
+      "title": "El Resplandor",
+      "emojis": "🏨👨🪓",
+      "options": ["El Resplandor", "1408", "La Niebla", "El Silencio"]
+    },
+    {
+      "title": "Alien",
+      "emojis": "👽🚀💀",
+      "options": ["Alien", "Depredador", "La Cosa", "Pitch Black"]
+    },
+    {
+      "title": "Tiburón",
+      "emojis": "🦈🏊‍♂️🚤",
+      "options": ["Tiburón", "Deep Blue Sea", "Open Water", "The Reef"]
+    }
+  ],
+  "romantica": [
+    {
+      "title": "Titanic",
+      "emojis": "🚢❤️🌊",
+      "options": ["Titanic", "Pearl Harbor", "Poseidón", "El Guardián"]
+    },
+    {
+      "title": "Diario de una Pasión",
+      "emojis": "📔💑🌧️",
+      "options": ["Diario de una Pasión", "Cartas a Julieta", "PS: Te Amo", "Querido John"]
+    },
+    {
+      "title": "La La Land",
+      "emojis": "🎹💃🌟",
+      "options": ["La La Land", "Chicago", "Moulin Rouge", "Fame"]
+    },
+    {
+      "title": "Pretty Woman",
+      "emojis": "👗💄💰",
+      "options": ["Pretty Woman", "Mujer Bonita", "Cómo Perder a un Hombre", "Notting Hill"]
+    },
+    {
+      "title": "Amor a Primera Vista",
+      "emojis": "👀❤️⚡",
+      "options": ["Amor a Primera Vista", "500 Días con Ella", "Serendipity", "Antes del Amanecer"]
+    }
+  ],
+  "comedia": [
+    {
+      "title": "¿Qué Pasó Ayer?",
+      "emojis": "🎰🐯🤵",
+      "options": ["¿Qué Pasó Ayer?", "Proyecto X", "Superbad", "Ted"]
+    },
+    {
+      "title": "Zoolander",
+      "emojis": "👱‍♂️👔📸",
+      "options": ["Zoolander", "El Diablo Viste a la Moda", "Click", "Bruce Todopoderoso"]
+    },
+    {
+      "title": "Deadpool",
+      "emojis": "🗡️😈🦸‍♂️",
+      "options": ["Deadpool", "Kick-Ass", "Scott Pilgrim", "Super"]
+    },
+    {
+      "title": "Shrek",
+      "emojis": "👹👸🏰",
+      "options": ["Shrek", "Encantada", "Los Croods", "Valiente"]
+    },
+    {
+      "title": "Mi Pobre Angelito",
+      "emojis": "👦🏠🎄",
+      "options": ["Mi Pobre Angelito", "Jumanji", "Big", "Dennis the Menace"]
+    }
+  ]
+}
