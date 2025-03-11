@@ -4,151 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adivina la Película con Emojis</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            background: #f0f2f5;
-            color: #333;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .screen {
-            display: none;
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        h1 {
-            text-align: center;
-            color: #1a73e8;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        button {
-            background: #1a73e8;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background: #1557b0;
-        }
-
-        .category-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .category-button {
-            background: #34a853;
-        }
-
-        .movie-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .movie-option {
-            background: #fbbc05;
-            color: #333;
-        }
-
-        .emojis {
-            font-size: 48px;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .scores {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-            font-size: 20px;
-        }
-
-        .popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
-            z-index: 1000;
-        }
-
-        .leaderboard {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .leaderboard th, .leaderboard td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .leaderboard th {
-            background: #f8f9fa;
-        }
-
-        @media (max-width: 600px) {
-            .movie-options {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 10px;
-            }
-
-            .emojis {
-                font-size: 36px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
@@ -164,6 +20,11 @@
         <!-- Pantalla de Selección de Categoría -->
         <div id="category-screen" class="screen">
             <h1>Elige una Categoría</h1>
+        <!-- Nuevo mensaje para informar sobre puntos acumulativos -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <strong>Cada que escoges una categoría los puntos serán acumulativos</strong>
+            </div>
+
             <div class="category-buttons">
                 <button class="category-button" onclick="selectCategory('accion')">Acción</button>
                 <button class="category-button" onclick="selectCategory('animacion')">Animación</button>
@@ -175,11 +36,17 @@
         </div>
 
         <!-- Pantalla de Juego -->
+        <!-- Dentro de la sección de la pantalla de juego -->
         <div id="game-screen" class="screen">
             <div class="scores">
                 <div>Jugador: <span id="player-score">0</span></div>
                 <div>IA: <span id="ai-score">0</span></div>
                 <div>Ronda: <span id="round-number">1</span>/10</div>
+            </div>
+
+            <!-- Nuevo elemento para mostrar la categoría -->
+            <div id="category-display" style="text-align: center; margin-bottom: 20px;">
+                <strong>Categoría: <span id="current-category">N/A</span></strong>
             </div>
 
             <div id="player-turn">
@@ -201,6 +68,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- Pantalla de Resultados -->
         <div id="results-screen" class="screen">
@@ -227,229 +95,6 @@
 
     <!-- Pop-up de Feedback -->
     <div id="feedback-popup" class="popup"></div>
-
-    <script>
-        let currentUser = null;
-        let currentCategory = null;
-        let playerScore = 0;
-        let aiScore = 0;
-        let currentRound = 1;
-        let isPlayerTurn = true;
-
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-        }
-
-        function showPopup(message, isSuccess) {
-            const popup = document.getElementById('feedback-popup');
-            popup.textContent = message;
-            popup.style.background = isSuccess ? '#34a853' : '#ea4335';
-            popup.style.color = 'white';
-            popup.style.display = 'block';
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 2000);
-        }
-
-        async function register() {
-            const username = document.getElementById('username').value.trim();
-            if (!username) {
-                showPopup('Por favor ingresa un nombre de usuario', false);
-                return;
-            }
-
-            try {
-                const response = await fetch('/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username })
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    currentUser = data;
-                    showScreen('category-screen');
-                } else {
-                    showPopup(data.error, false);
-                }
-            } catch (error) {
-                showPopup('Error al registrar usuario', false);
-            }
-        }
-
-        async function selectCategory(category) {
-            currentCategory = category;
-            playerScore = 0;
-            aiScore = 0;
-            currentRound = 1;
-            isPlayerTurn = true;
-            updateScores();
-            showScreen('game-screen');
-            await startPlayerTurn();
-        }
-
-        async function startPlayerTurn() {
-            try {
-                const response = await fetch('/get_movie', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ category: currentCategory })
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    document.getElementById('movie-emojis').textContent = data.emojis;
-                    const optionsContainer = document.getElementById('movie-options');
-                    optionsContainer.innerHTML = '';
-                    
-                    // Mezclar opciones
-                    const shuffledOptions = [...data.options].sort(() => Math.random() - 0.5);
-                    
-                    shuffledOptions.forEach(option => {
-                        const button = document.createElement('button');
-                        button.className = 'movie-option';
-                        button.textContent = option;
-                        button.onclick = () => checkAnswer(option, data.correct_answer);
-                        optionsContainer.appendChild(button);
-                    });
-
-                    document.getElementById('player-turn').style.display = 'block';
-                    document.getElementById('ai-turn').style.display = 'none';
-                }
-            } catch (error) {
-                showPopup('Error al obtener película', false);
-            }
-        }
-
-        async function checkAnswer(selected, correct) {
-            if (selected === correct) {
-                playerScore += 2;
-                showPopup('¡Correcto! +2 puntos', true);
-            } else {
-                aiScore += 1;
-                showPopup(`Incorrecto. La respuesta era: ${correct}`, false);
-            }
-
-            updateScores();
-            await saveScore();
-
-            if (currentRound < 10) {
-                currentRound++;
-                document.getElementById('player-turn').style.display = 'none';
-                document.getElementById('ai-turn').style.display = 'block';
-            } else {
-                endGame();
-            }
-        }
-
-        async function submitEmojis() {
-            const emojis = document.getElementById('player-emojis').value.trim();
-            if (!emojis) {
-                showPopup('Por favor ingresa emojis', false);
-                return;
-            }
-
-            try {
-                const response = await fetch('/ai_guess', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ emojis })
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    document.getElementById('ai-guess-result').textContent = `La IA adivina: ${data.guess}`;
-                    document.getElementById('ai-evaluation').style.display = 'block';
-                }
-            } catch (error) {
-                showPopup('Error al obtener respuesta de la IA', false);
-            }
-        }
-
-        async function evaluateAI(isCorrect) {
-            if (isCorrect) {
-                aiScore += 2;
-                showPopup('¡La IA acertó! +2 puntos', false);
-            } else {
-                playerScore += 1;
-                showPopup('La IA falló. +1 punto para ti', true);
-            }
-
-            updateScores();
-            await saveScore();
-
-            document.getElementById('ai-guess-result').textContent = '';
-            document.getElementById('ai-evaluation').style.display = 'none';
-            document.getElementById('player-emojis').value = '';
-
-            if (currentRound < 10) {
-                currentRound++;
-                await startPlayerTurn();
-            } else {
-                endGame();
-            }
-        }
-
-        async function saveScore() {
-            try {
-                await fetch('/save_score', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: currentUser.id,
-                        player_score: playerScore,
-                        ai_score: aiScore,
-                        category: currentCategory
-                    })
-                });
-            } catch (error) {
-                console.error('Error al guardar puntuación:', error);
-            }
-        }
-
-        function updateScores() {
-            document.getElementById('player-score').textContent = playerScore;
-            document.getElementById('ai-score').textContent = aiScore;
-            document.getElementById('round-number').textContent = currentRound;
-        }
-
-        async function endGame() {
-            document.getElementById('final-player-score').textContent = playerScore;
-            document.getElementById('final-ai-score').textContent = aiScore;
-            
-            try {
-                const response = await fetch('/get_leaderboard');
-                const leaderboard = await response.json();
-                
-                const leaderboardBody = document.getElementById('leaderboard-body');
-                leaderboardBody.innerHTML = '';
-                
-                leaderboard.forEach(entry => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${entry.username}</td>
-                        <td>${entry.player_score}</td>
-                        <td>${entry.ai_score}</td>
-                    `;
-                    leaderboardBody.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Error al cargar tabla de posiciones:', error);
-            }
-            
-            showScreen('results-screen');
-        }
-
-        function playAgain() {
-            currentCategory = null;
-            playerScore = 0;
-            aiScore = 0;
-            currentRound = 1;
-            showScreen('category-screen');
-        }
-    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
-
-

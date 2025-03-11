@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, app
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
@@ -6,15 +6,23 @@ import json
 import random
 import requests
 
+from flask import Flask
+
+# Inicializa la aplicación Flask
 app = Flask(__name__)
-CORS(app)
+from sqlalchemy import create_engine
 
-# Database configuration
+# Configuración de la base de datos con SSL para pg8000
 DB_URL = "postgresql+pg8000://ultimo_humano_user:q83MoA2qaSlEbzKce2WnkXEt9z5LjfOO@dpg-cv4959qj1k6c738evoog-a.oregon-postgres.render.com/ultimo_humano"
-app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "connect_args": {
+        "ssl_context": True  # Habilita SSL para pg8000
+    }
+}
+
+db = SQLAlchemy(app)
 # Gemini API configuration
 GEMINI_API_KEY = "AIzaSyAiC12LWiA7ATUgG6rBW5DO-XZyKECbp-k"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
@@ -116,6 +124,7 @@ def ai_guess():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/save_score', methods=['POST'])
 def save_score():
     data = request.get_json()
@@ -123,21 +132,47 @@ def save_score():
     player_score = data.get('player_score')
     ai_score = data.get('ai_score')
     category = data.get('category')
-    
-    if not all([user_id, player_score is not None, ai_score is not None, category]):
-        return jsonify({'error': 'Missing required fields'}), 400
-    
-    score = Score(
-        user_id=user_id,
-        player_score=player_score,
-        ai_score=ai_score,
-        category=category
-    )
-    db.session.add(score)
-    db.session.commit()
-    
-    return jsonify({'message': 'Score saved successfully'})
 
+    if not all([user_id, player_score is not None, ai_score is not None, category]):
+        return jsonify({'error': 'Datos incompletos'}), 400
+
+    # Buscar un registro existente
+    score = Score.query.filter_by(user_id=user_id, category=category).first()
+
+    if score:
+        # Actualizar puntajes acumulados
+        score.player_score = player_score
+        score.ai_score = ai_score
+    else:
+        # Crear un nuevo registro
+        score = Score(
+            user_id=user_id,
+            player_score=player_score,
+            ai_score=ai_score,
+            category=category
+        )
+        db.session.add(score)
+
+    db.session.commit()
+    return jsonify({'message': 'Puntuación guardada correctamente'})
+
+
+@app.route('/get_leaderboard')
+def get_leaderboard():
+    scores = db.session.query(
+        User.username,
+        db.func.sum(Score.player_score).label('total_player_score'),
+        db.func.sum(Score.ai_score).label('total_ai_score')
+    ).join(Score).group_by(User.username) \
+        .order_by(db.text('total_player_score DESC')).all()
+
+    return jsonify([
+        {
+            'username': score[0],
+            'player_score': int(score[1]),
+            'ai_score': int(score[2])
+        } for score in scores
+    ])
 @app.route('/leaderboard')
 def leaderboard():
     scores = db.session.query(
