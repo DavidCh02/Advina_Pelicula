@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adivina la Película con Emojis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Emoji Picker Element (biblioteca) -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/emoji-picker-element@latest/dist/picker.css">
 </head>
 <body>
     <div class="container">
@@ -20,9 +23,9 @@
         <!-- Pantalla de Selección de Categoría -->
         <div id="category-screen" class="screen">
             <h1>Elige una Categoría</h1>
-        <!-- Nuevo mensaje para informar sobre puntos acumulativos -->
+            <!-- Nuevo mensaje para informar sobre puntos acumulativos -->
             <div style="text-align: center; margin-bottom: 20px;">
-                <strong>Cada que escoges una categoría los puntos serán acumulativos</strong>
+                <strong>Cada vez que escoges una categoría, los puntos serán acumulativos</strong>
             </div>
 
             <div class="category-buttons">
@@ -36,7 +39,6 @@
         </div>
 
         <!-- Pantalla de Juego -->
-        <!-- Dentro de la sección de la pantalla de juego -->
         <div id="game-screen" class="screen">
             <div class="scores">
                 <div>Jugador: <span id="player-score">0</span></div>
@@ -55,20 +57,33 @@
                 <div class="movie-options" id="movie-options"></div>
             </div>
 
+            <!-- Nuevo panel de selección de emojis -->
             <div id="ai-turn" style="display: none;">
                 <h2>Turno de la IA</h2>
-                <div class="form-group">
-                    <input type="text" id="player-emojis" placeholder="Ingresa emojis para la película">
+
+
+                <!-- Contenedor del selector de emojis -->
+                <div id="emoji-picker-container">
+                    <emoji-picker id="emoji-picker"
+                                  categories="smileys,people,nature,food,activities,travel,objects,symbols,flags"></emoji-picker>
                 </div>
-                <button onclick="submitEmojis()">Enviar</button>
-                <div id="ai-guess-result" style="margin-top: 20px;"></div>
+
+                <!-- Área de vista previa de emojis seleccionados -->
+                <div id="selected-emojis" class="selected-emojis-preview"></div>
+
+                <!-- Botón de envío -->
+                <button class="emoji-submit-btn" onclick="submitEmojis()">Enviar Emojis</button>
+
+                <!-- Resultado de la IA -->
+                <div id="ai-guess-result" class="ai-guess-result"></div>
+
+                <!-- Botones de evaluación -->
                 <div class="form-group" id="ai-evaluation" style="display: none;">
                     <button onclick="evaluateAI(true)">Correcto</button>
                     <button onclick="evaluateAI(false)">Incorrecto</button>
                 </div>
             </div>
         </div>
-
 
         <!-- Pantalla de Resultados -->
         <div id="results-screen" class="screen">
@@ -95,6 +110,8 @@
 
     <!-- Pop-up de Feedback -->
     <div id="feedback-popup" class="popup"></div>
+
+    <!-- Script principal -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

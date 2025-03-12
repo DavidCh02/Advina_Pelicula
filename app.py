@@ -31,6 +31,7 @@ GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0
 with open('emojis.json', 'r', encoding='utf-8') as f:
     movies_data = json.load(f)
 
+
 # Database Models
 class User(db.Model):
     __tablename__ = 'users'
@@ -38,6 +39,7 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     scores = db.relationship('Score', backref='user', lazy=True)
+
 
 class Score(db.Model):
     __tablename__ = 'scores'
@@ -48,43 +50,47 @@ class Score(db.Model):
     category = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 # Create database tables
 with app.app_context():
     db.create_all()
+
 
 # Routes
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
     username = data.get('username')
-    
+
     if not username:
         return jsonify({'error': 'Username is required'}), 400
-    
+
     if User.query.filter_by(username=username).first():
         return jsonify({'error': 'Username already exists'}), 400
-    
+
     user = User(username=username)
     db.session.add(user)
     db.session.commit()
-    
+
     return jsonify({'id': user.id, 'username': user.username})
+
 
 @app.route('/get_movie', methods=['POST'])
 def get_movie():
     data = request.get_json()
     category = data.get('category')
-    
+
     if category not in movies_data and category != 'aleatorio':
         return jsonify({'error': 'Invalid category'}), 400
-    
+
     if category == 'aleatorio':
         category = random.choice(list(movies_data.keys()))
-    
+
     movie = random.choice(movies_data[category])
     return jsonify({
         'emojis': movie['emojis'],
@@ -92,17 +98,18 @@ def get_movie():
         'correct_answer': movie['title']
     })
 
+
 @app.route('/ai_guess', methods=['POST'])
 def ai_guess():
     data = request.get_json()
     emojis = data.get('emojis')
-    
+
     if not emojis:
         return jsonify({'error': 'Emojis are required'}), 400
-    
+
     # Prepare prompt for Gemini API
     prompt = f"Guess the movie title based on these emojis: {emojis}. Respond with just the movie title."
-    
+
     try:
         response = requests.post(
             GEMINI_URL,
@@ -114,7 +121,7 @@ def ai_guess():
                 'contents': [{'parts': [{'text': prompt}]}]
             }
         )
-        
+
         if response.status_code == 200:
             ai_response = response.json()
             movie_guess = ai_response['candidates'][0]['content']['parts'][0]['text'].strip()
@@ -173,15 +180,17 @@ def get_leaderboard():
             'ai_score': int(score[2])
         } for score in scores
     ])
+
+
 @app.route('/leaderboard')
 def leaderboard():
     scores = db.session.query(
         User.username,
         db.func.sum(Score.player_score).label('total_player_score'),
         db.func.sum(Score.ai_score).label('total_ai_score')
-    ).join(Score).group_by(User.username)\
-    .order_by(db.text('total_player_score DESC')).all()
-    
+    ).join(Score).group_by(User.username) \
+        .order_by(db.text('total_player_score DESC')).all()
+
     return jsonify([
         {
             'username': score[0],
@@ -189,6 +198,7 @@ def leaderboard():
             'ai_score': int(score[2])
         } for score in scores
     ])
+
 
 if __name__ == '__main__':
     app.run(debug=True)

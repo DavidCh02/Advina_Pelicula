@@ -1,3 +1,6 @@
+
+
+
 let currentUser = null;
 let currentCategory = null;
 let playerScore = 0;
@@ -61,7 +64,6 @@ async function selectCategory(category) {
     await startPlayerTurn();
 }
 
-
 async function startPlayerTurn() {
     try {
         const response = await fetch('/get_movie', {
@@ -120,7 +122,6 @@ async function checkAnswer(selected, correct) {
 
 async function startAITurn() {
     try {
-        // Obtener una película aleatoria para la IA
         const response = await fetch('/get_movie', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -129,7 +130,6 @@ async function startAITurn() {
 
         const data = await response.json();
         if (response.ok) {
-            document.getElementById('player-emojis').value = data.emojis; // Asignar emojis automáticamente
             document.getElementById('ai-turn').style.display = 'block';
             document.getElementById('player-turn').style.display = 'none';
         }
@@ -139,30 +139,55 @@ async function startAITurn() {
     }
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    const emojiPicker = document.querySelector('emoji-picker');
+    const selectedEmojis = document.getElementById('selected-emojis');
+
+    if (emojiPicker && selectedEmojis) {
+        // Manejar clic en emojis
+        emojiPicker.addEventListener('emoji-click', (e) => {
+            selectedEmojis.textContent += e.detail.unicode;
+        });
+
+        // Agregar botón para eliminar el último emoji
+        const removeLastEmojiBtn = document.createElement('button');
+        removeLastEmojiBtn.textContent = 'Eliminar último emoji';
+        removeLastEmojiBtn.classList.add('emoji-remove-btn');
+        removeLastEmojiBtn.onclick = () => {
+            const text = selectedEmojis.textContent;
+            if (text.length > 0) {
+                selectedEmojis.textContent = text.slice(0, -2); // Eliminar el último emoji
+            }
+        };
+
+        // Agregar el botón debajo del selector de emojis
+        document.getElementById('emoji-picker-container').appendChild(removeLastEmojiBtn);
+    }
+});
+
 async function submitEmojis() {
-    const emojis = document.getElementById('player-emojis').value.trim();
+    // Obtener los emojis del div correcto (selected-emojis)
+    const emojis = document.getElementById('selected-emojis').innerText.trim();
     if (!emojis) {
-        showPopup('Por favor ingresa emojis', false);
+        showPopup('Por favor selecciona emojis', false);
         return;
     }
-
     try {
         const response = await fetch('/ai_guess', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ emojis })
         });
-
-        const data = await response.json();
-        if (response.ok) {
-            document.getElementById('ai-guess-result').textContent = `La IA adivina: ${data.guess}`;
-            document.getElementById('ai-evaluation').style.display = 'block';
-        } else {
-            showPopup(data.error || 'Error al obtener respuesta de la IA', false);
+        if (!response.ok) {
+            throw new Error(`Error al obtener respuesta de la IA: ${response.statusText}`);
         }
+        const data = await response.json();
+        document.getElementById('ai-guess-result').textContent = `La IA adivina: ${data.guess}`;
+        document.getElementById('ai-evaluation').style.display = 'block';
+        document.getElementById('emoji-panel').style.display = 'none';
+        document.getElementById('ai-turn').style.display = 'block';
     } catch (error) {
         console.error('Error al obtener respuesta de la IA:', error);
-        showPopup('Error al conectar con el servidor', false);
     }
 }
 
@@ -180,7 +205,6 @@ async function evaluateAI(isCorrect) {
 
     document.getElementById('ai-guess-result').textContent = '';
     document.getElementById('ai-evaluation').style.display = 'none';
-    document.getElementById('player-emojis').value = '';
 
     if (currentRound < 10) {
         currentRound++;

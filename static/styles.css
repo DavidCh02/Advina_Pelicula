@@ -1,9 +1,11 @@
+/* Reset básico */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+/* Estilos generales */
 body {
     font-family: 'Arial', sans-serif;
     line-height: 1.6;
@@ -22,7 +24,7 @@ body {
     background: white;
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
 }
 
@@ -72,6 +74,17 @@ button:hover {
 
 .category-button {
     background: #34a853;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.category-button:hover {
+    background: #2d934c;
 }
 
 .movie-options {
@@ -84,6 +97,16 @@ button:hover {
 .movie-option {
     background: #fbbc05;
     color: #333;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.movie-option:hover {
+    background: #eaae04;
 }
 
 .emojis {
@@ -108,7 +131,7 @@ button:hover {
     background: white;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
     z-index: 1000;
 }
 
@@ -118,7 +141,8 @@ button:hover {
     margin-top: 20px;
 }
 
-.leaderboard th, .leaderboard td {
+.leaderboard th,
+.leaderboard td {
     padding: 10px;
     text-align: left;
     border-bottom: 1px solid #ddd;
@@ -128,6 +152,69 @@ button:hover {
     background: #f8f9fa;
 }
 
+/* Estilos específicos para el selector de emojis */
+/* Estilos para el selector de emojis */
+#emoji-picker-container {
+    max-width: 380px;
+    margin: 15px auto;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 10px;
+    background: white;
+}
+
+emoji-picker {
+    width: 100%;
+    height: 300px; /* Altura ajustada para mejor visualización */
+    overflow-y: auto; /* Habilitar desplazamiento si es necesario */
+}
+
+.emoji-search-container input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    font-size: 16px;
+    text-align: center;
+}
+
+/* Estilos para el área de vista previa */
+.selected-emojis-preview {
+    font-size: 28px;
+    text-align: center;
+    min-height: 50px;
+    margin: 15px 0;
+    border: 2px dashed #eee;
+    padding: 10px;
+    border-radius: 8px;
+    word-break: break-all; /* Asegura que los emojis no se salgan del contenedor */
+}
+
+.emoji-submit-btn {
+    background: #1a73e8;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    width: 100%;
+}
+
+.emoji-submit-btn:hover {
+    background: #1557b0;
+}
+
+.ai-guess-result {
+    font-size: 18px;
+    margin: 20px 0;
+    text-align: center;
+    color: #5f6368;
+}
+
+/* Media queries para pantallas pequeñas */
 @media (max-width: 600px) {
     .movie-options {
         grid-template-columns: 1fr;
