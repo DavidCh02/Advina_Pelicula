@@ -6,6 +6,8 @@ let currentCategory = null;
 let playerScore = 0;
 let aiScore = 0;
 let currentRound = 1;
+let playedCategories = new Set();
+
 
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
@@ -57,42 +59,69 @@ async function selectCategory(category) {
     currentRound = 1;
     updateScores();
 
-    // Mostrar la categoría seleccionada
-    document.getElementById('current-category').textContent = category.charAt(0).toUpperCase() + category.slice(1);
+    // Actualizar el nombre de la categoría en la interfaz
+    const categoryDisplay = document.getElementById('current-category');
+    if (categoryDisplay) {
+        categoryDisplay.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+    }
 
+    // Guardar la categoría jugada y almacenarla en localStorage
+    playedCategories.add(category);
+    localStorage.setItem('playedCategories', JSON.stringify([...playedCategories]));
+
+    // Buscar y eliminar el botón de la categoría seleccionada
+    document.querySelectorAll('.category-button').forEach(button => {
+        if (button.getAttribute('data-category') === category) {
+            button.remove(); // Elimina el botón del DOM
+        }
+    });
+
+    checkRemainingCategories();
     showScreen('game-screen');
     await startPlayerTurn();
 }
 
+
+
+
+
+
+
+// Agregar variable para almacenar emojis usados
+let usedEmojis = [];
+
 async function startPlayerTurn() {
     try {
-        const response = await fetch('/get_movie', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ category: currentCategory })
-        });
+        let newMovie;
+        let attempts = 0;
+        do {
+            const response = await fetch('/get_movie', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category: currentCategory })
+            });
+            newMovie = await response.json();
+            attempts++;
+        } while (usedEmojis.includes(newMovie.emojis) && attempts < 10); // Intentar hasta 10 veces
 
-        const data = await response.json();
-        if (response.ok) {
-            document.getElementById('movie-emojis').textContent = data.emojis;
+        if (!usedEmojis.includes(newMovie.emojis)) {
+            usedEmojis.push(newMovie.emojis);
+            document.getElementById('movie-emojis').textContent = newMovie.emojis;
+
             const optionsContainer = document.getElementById('movie-options');
             optionsContainer.innerHTML = '';
-
-            // Mezclar opciones
-            const shuffledOptions = [...data.options].sort(() => Math.random() - 0.5);
-
+            const shuffledOptions = [...newMovie.options].sort(() => Math.random() - 0.5);
             shuffledOptions.forEach(option => {
                 const button = document.createElement('button');
                 button.className = 'movie-option';
                 button.textContent = option;
-                button.onclick = () => checkAnswer(option, data.correct_answer);
+                button.onclick = () => checkAnswer(option, newMovie.correct_answer);
                 optionsContainer.appendChild(button);
             });
-
             document.getElementById('player-turn').style.display = 'block';
             document.getElementById('ai-turn').style.display = 'none';
         } else {
-            showPopup(data.error || 'Error al obtener película', false);
+            showPopup('Error al generar emojis únicos', false);
         }
     } catch (error) {
         console.error('Error al obtener película:', error);
@@ -121,22 +150,37 @@ async function checkAnswer(selected, correct) {
 }
 
 async function startAITurn() {
-    try {
-        const response = await fetch('/get_movie', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ category: currentCategory })
-        });
+    // Limpiar emojis seleccionados
+    document.getElementById('selected-emojis').textContent = '';
 
-        const data = await response.json();
-        if (response.ok) {
+    try {
+        let newMovie;
+        let attempts = 0;
+        do {
+            const response = await fetch('/get_movie', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category: currentCategory })
+            });
+            newMovie = await response.json();
+            attempts++;
+        } while (usedEmojis.includes(newMovie.emojis) && attempts < 10);
+
+        if (!usedEmojis.includes(newMovie.emojis)) {
+            usedEmojis.push(newMovie.emojis);
             document.getElementById('ai-turn').style.display = 'block';
             document.getElementById('player-turn').style.display = 'none';
+        } else {
+            showPopup('Error al generar emojis únicos para IA', false);
         }
     } catch (error) {
         console.error('Error al obtener película para la IA:', error);
         showPopup('Error al generar emojis para la IA', false);
     }
+}
+
+function resetGame() {
+    usedEmojis = []; // Limpiar lista de emojis usados
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -151,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Agregar botón para eliminar el último emoji
         const removeLastEmojiBtn = document.createElement('button');
-        removeLastEmojiBtn.textContent = 'Eliminar último emoji';
+        removeLastEmojiBtn.textContent = 'Eliminar emoji ❌';
         removeLastEmojiBtn.classList.add('emoji-remove-btn');
         removeLastEmojiBtn.onclick = () => {
             const text = selectedEmojis.textContent;
@@ -197,7 +241,7 @@ async function evaluateAI(isCorrect) {
         showPopup('¡La IA acertó! +2 puntos', false);
     } else {
         playerScore += 1;
-        showPopup('La IA falló. +1 punto para ti', true);
+        showPopup('La IA falló, que mal :c ', true);
     }
 
     updateScores();
@@ -277,9 +321,34 @@ async function endGame() {
 }
 
 function playAgain() {
-    currentCategory = null;
     playerScore = 0;
     aiScore = 0;
     currentRound = 1;
+    resetGame();
     showScreen('category-screen');
+
+    // Verificar y eliminar las categorías jugadas
+    document.querySelectorAll('.category-button').forEach(button => {
+        let category = button.getAttribute('data-category');
+        if (playedCategories.has(category)) {
+            button.remove();
+        }
+    });
+
+    checkRemainingCategories();
 }
+
+
+function checkRemainingCategories() {
+    const remainingCategories = document.querySelectorAll('.category-button');
+
+    if (remainingCategories.length === 0) {
+        // Mostrar mensaje de que no hay más categorías
+        document.getElementById('category-screen').innerHTML = `
+            <h1>😢 No hay más categorías disponibles</h1>
+            <p>Has jugado todas las categorías. ¡Gracias por jugar!</p>
+                    `;
+    }
+}
+
+

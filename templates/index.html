@@ -5,113 +5,179 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adivina la Película con Emojis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Fuentes de Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
     <!-- Emoji Picker Element (biblioteca) -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/emoji-picker-element@latest/dist/picker.css">
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Pantalla de Registro -->
-        <div id="register-screen" class="screen active">
-            <h1>Bienvenido al Juego de Emojis</h1>
-            <div class="form-group">
-                <input type="text" id="username" placeholder="Ingresa tu nombre de usuario">
-            </div>
-            <button onclick="register()">Comenzar</button>
+<div class="container">
+    <!-- Pantalla de Registro -->
+    <div id="register-screen" class="screen active">
+        <h1><i class="fas fa-film"></i> Adivina la Película con emojis 🤩</h1>
+        <p class="welcome-text">Coloca tu nombre y empieza el juego</p>
+        <div class="form-group">
+            <label for="username"></label>
+            <input type="text" id="username" placeholder="Trata de que tu nombre sea unico">
         </div>
+        <button onclick="register()"><i class="fas fa-play"></i> ¿Listo?</button>
+    </div>
 
-        <!-- Pantalla de Selección de Categoría -->
+    <!-- Pantalla de Selección de Categoría -->
+    <!-- Pantalla de Selección de Categoría -->
         <div id="category-screen" class="screen">
-            <h1>Elige una Categoría</h1>
-            <!-- Nuevo mensaje para informar sobre puntos acumulativos -->
-            <div style="text-align: center; margin-bottom: 20px;">
-                <strong>Cada vez que escoges una categoría, los puntos serán acumulativos</strong>
+            <h1><i class="fas fa-list-alt"></i> Elige una Categoría</h1>
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <span>Cada que escojes una categoria tus puntos se acomulan</span>
             </div>
+        <div class="category-buttons">
+            <button class="category-button" data-category="accion" onclick="selectCategory('accion')">
+                <i class="fas fa-running"></i> Acción
+            </button>
+            <button class="category-button" data-category="animacion" onclick="selectCategory('animacion')">
+                <i class="fas fa-dragon"></i> Animación
+            </button>
+            <button class="category-button" data-category="terror" onclick="selectCategory('terror')">
+                <i class="fas fa-ghost"></i> Terror
+            </button>
+            <button class="category-button" data-category="romantica" onclick="selectCategory('romantica')">
+                <i class="fas fa-heart"></i> Romántica
+            </button>
+            <button class="category-button" data-category="comedia" onclick="selectCategory('comedia')">
+                <i class="fas fa-laugh"></i> Comedia
+            </button>
+            <button class="category-button" data-category="aleatorio" onclick="selectCategory('aleatorio')">
+                <i class="fas fa-random"></i> Aleatorio
+            </button>
 
-            <div class="category-buttons">
-                <button class="category-button" onclick="selectCategory('accion')">Acción</button>
-                <button class="category-button" onclick="selectCategory('animacion')">Animación</button>
-                <button class="category-button" onclick="selectCategory('terror')">Terror</button>
-                <button class="category-button" onclick="selectCategory('romantica')">Romántica</button>
-                <button class="category-button" onclick="selectCategory('comedia')">Comedia</button>
-                <button class="category-button" onclick="selectCategory('aleatorio')">Aleatorio</button>
-            </div>
-        </div>
-
-        <!-- Pantalla de Juego -->
-        <div id="game-screen" class="screen">
-            <div class="scores">
-                <div>Jugador: <span id="player-score">0</span></div>
-                <div>IA: <span id="ai-score">0</span></div>
-                <div>Ronda: <span id="round-number">1</span>/10</div>
-            </div>
-
-            <!-- Nuevo elemento para mostrar la categoría -->
-            <div id="category-display" style="text-align: center; margin-bottom: 20px;">
-                <strong>Categoría: <span id="current-category">N/A</span></strong>
-            </div>
-
-            <div id="player-turn">
-                <h2>Tu Turno</h2>
-                <div class="emojis" id="movie-emojis"></div>
-                <div class="movie-options" id="movie-options"></div>
-            </div>
-
-            <!-- Nuevo panel de selección de emojis -->
-            <div id="ai-turn" style="display: none;">
-                <h2>Turno de la IA</h2>
-
-
-                <!-- Contenedor del selector de emojis -->
-                <div id="emoji-picker-container">
-                    <emoji-picker id="emoji-picker"
-                                  categories="smileys,people,nature,food,activities,travel,objects,symbols,flags"></emoji-picker>
-                </div>
-
-                <!-- Área de vista previa de emojis seleccionados -->
-                <div id="selected-emojis" class="selected-emojis-preview"></div>
-
-                <!-- Botón de envío -->
-                <button class="emoji-submit-btn" onclick="submitEmojis()">Enviar Emojis</button>
-
-                <!-- Resultado de la IA -->
-                <div id="ai-guess-result" class="ai-guess-result"></div>
-
-                <!-- Botones de evaluación -->
-                <div class="form-group" id="ai-evaluation" style="display: none;">
-                    <button onclick="evaluateAI(true)">Correcto</button>
-                    <button onclick="evaluateAI(false)">Incorrecto</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pantalla de Resultados -->
-        <div id="results-screen" class="screen">
-            <h1>Fin del Juego</h1>
-            <div class="scores">
-                <div>Puntuación Final:</div>
-                <div>Jugador: <span id="final-player-score">0</span></div>
-                <div>IA: <span id="final-ai-score">0</span></div>
-            </div>
-            <h2>Tabla de Posiciones</h2>
-            <table class="leaderboard">
-                <thead>
-                    <tr>
-                        <th>Jugador</th>
-                        <th>Puntos Jugador</th>
-                        <th>Puntos IA</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboard-body"></tbody>
-            </table>
-            <button onclick="playAgain()">Jugar de Nuevo</button>
         </div>
     </div>
 
-    <!-- Pop-up de Feedback -->
-    <div id="feedback-popup" class="popup"></div>
+    <!-- Pantalla de Juego -->
+    <div id="game-screen" class="screen">
+        <div class="scores">
+            <div>
+                <i class="fas fa-user"></i>
+                <span id="player-score">0</span>
+            </div>
+            <div>
+                <i class="fas fa-robot"></i>
+                <span id="ai-score">0</span>
+            </div>
+            <div>
+                <i class="fas fa-flag-checkered"></i>
+                <span id="round-number">1</span>/10
+            </div>
+        </div>
 
-    <!-- Script principal -->
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+        <!-- Elemento para mostrar la categoría -->
+        <div id="category-display">
+            <i class="fas fa-tag"></i> Categoría: <span id="current-category">N/A</span>
+        </div>
+
+        <!-- Turno del jugador -->
+        <div id="player-turn">
+            <h2><i class="fas fa-user-circle"></i> Tu Turno</h2>
+            <div class="emojis" id="movie-emojis"></div>
+            <div class="movie-options" id="movie-options"></div>
+        </div>
+
+        <!-- Turno de la IA -->
+        <div id="ai-turn" style="display: none;">
+            <h2><i class="fas fa-robot"></i> Turno de la IA</h2>
+            <p class="instruction-text">Selecciona emojis que representen una película (Bsuqueda en ingles)</p>
+            <span>Desplazate hacia abajo si nos ves mas opciones ▼</span>
+            <!-- Contenedor del selector de emojis -->
+            <div id="emoji-picker-container">
+                <emoji-picker id="emoji-picker"
+                              categories="smileys,people,nature,food,activities,travel,objects,symbols,flags"></emoji-picker>
+            </div>
+
+            <!-- Área de vista previa de emojis seleccionados -->
+            <div id="selected-emojis" class="selected-emojis-preview"></div>
+
+
+
+            <!-- Botón de envío -->
+            <button class="emoji-submit-btn" onclick="submitEmojis()">
+                <i class="fas fa-paper-plane"></i> Enviar Emojis
+            </button>
+            <span>Desplazate hacia abajo despues de enviar ▼</span>
+
+
+
+            <!-- Resultado de la IA -->
+            <div id="ai-guess-result" class="ai-guess-result"></div>
+
+
+            <!-- Botones de evaluación -->
+            <div class="form-group" id="ai-evaluation" style="display: none;">
+                <button onclick="evaluateAI(true)" class="correct-btn">
+                    <i class="fas fa-check"></i> Correcto
+                </button>
+                <button onclick="evaluateAI(false)" class="incorrect-btn">
+                    <i class="fas fa-times"></i> Incorrecto
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Resultados -->
+    <div id="results-screen" class="screen">
+        <h1><i class="fas fa-trophy"></i> Fin del Juego</h1>
+        <h2><i class="fas fa-trophy"></i> ¿Quieres volver a jugar para sumar mas puntos? ▼</h2>
+        <span>Desplazate hacia el final ▼</span>
+        <div class="final-score-container">
+            <div class="scores">
+                <div>
+                    <i class="fas fa-user"></i>
+                    <span id="final-player-score">0</span>
+                </div>
+                <div>
+                    <i class="fas fa-robot"></i>
+                    <span id="final-ai-score">0</span>
+                </div>
+            </div>
+            <div id="final-message" class="final-message">
+                <!-- Se llenará con JavaScript -->
+            </div>
+        </div>
+
+        <h2><i class="fas fa-list-ol"></i> Tabla de Posiciones</h2>
+        <div class="leaderboard-container">
+            <table class="leaderboard">
+                <thead>
+                <tr>
+                    <th>Jugador</th>
+                    <th>Puntos Jugador</th>
+                    <th>Puntos IA</th>
+                </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+        </div>
+        <button onclick="playAgain()" class="play-again-btn">
+            <i class="fas fa-redo"></i> Jugar de Nuevo
+        </button>
+    </div>
+</div>
+
+<!-- Pop-up de Feedback -->
+<div id="feedback-popup" class="popup"></div>
+
+<!-- Contenedor para confeti -->
+<div id="confetti-container" class="confetti-container"></div>
+
+<!-- Script principal -->
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+<!-- Script de animaciones -->
+<script src="{{ url_for('static', filename='animations.js') }}"></script>
 </body>
 </html>

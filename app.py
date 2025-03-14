@@ -24,7 +24,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 
 db = SQLAlchemy(app)
 # Gemini API configuration
-GEMINI_API_KEY = "AIzaSyAiC12LWiA7ATUgG6rBW5DO-XZyKECbp-k"
+GEMINI_API_KEY = "AIzaSyCe7CKTouKq-4BuAZ2G62pWD1q55nii4Kg"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 # Load movie data
@@ -108,7 +108,7 @@ def ai_guess():
         return jsonify({'error': 'Emojis are required'}), 400
 
     # Prepare prompt for Gemini API
-    prompt = f"Guess the movie title based on these emojis: {emojis}. Respond with just the movie title."
+    prompt = f"Adivina el título de la película basada en estos emojis: {emojis}. Responde solo con el título Español-latino."
 
     try:
         response = requests.post(
