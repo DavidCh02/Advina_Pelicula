@@ -351,4 +351,53 @@ function checkRemainingCategories() {
     }
 }
 
+async function showRewardsScreen() {
+    const rewardsContainer = document.getElementById('rewards-container');
+    rewardsContainer.innerHTML = '';
 
+    try {
+        const response = await fetch('/get_rewards');
+        const rewards = await response.json();
+
+        rewards.forEach(reward => {
+            const rewardItem = document.createElement('div');
+            rewardItem.classList.add('reward-item');
+            rewardItem.innerHTML = `
+                <p>${reward.name} - ${reward.cost} puntos</p>
+                <button onclick="redeemReward(${reward.id}, ${reward.cost})">Canjear</button>
+            `;
+            rewardsContainer.appendChild(rewardItem);
+        });
+
+        showScreen('rewards-screen');
+    } catch (error) {
+        console.error('Error al obtener recompensas:', error);
+    }
+}
+
+async function redeemReward(rewardId, cost) {
+    if (playerScore < cost) {
+        showPopup('No tienes suficientes puntos', false);
+        return;
+    }
+
+    try {
+        const response = await fetch('/redeem_reward', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentUser.id, reward_id: rewardId })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            playerScore = data.remaining_points;
+            updateScores();
+            showPopup('¡Recompensa canjeada!', true);
+            showRewardsScreen();
+        } else {
+            showPopup(data.error, false);
+        }
+    } catch (error) {
+        console.error('Error al canjear recompensa:', error);
+    }
+}

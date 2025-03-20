@@ -1,0 +1,12 @@
+static/
+├── images/
+│   └── rewards/
+│       ├── meme1_locked.jpg
+│       ├── meme2_locked.jpg
+│       ├── meme3_locked.jpg
+│       ├── card1_locked.jpg
+│       ├── card2_locked.jpg
+│       ├── wallpaper1_locked.jpg
+│       ├── wallpaper2_locked.jpg
+│       ├── cert1_locked.jpg
+│       └── cert2_locked.jpg

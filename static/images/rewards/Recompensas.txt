@@ -1,17 +1,23 @@
-from flask import Flask, request, jsonify, render_template, session
+la situacion es la siguiente y ahora tengo las recompensas que voy agregar y seran, tres memes que solo se podran ver y deben canjear sus puntos para verlos por seprado, cada uno cuesta 3 puntos, luego estan sobre los datos curisos del cine, por cada punto se puede desbloquear un dato aleatorio sobre un dato interesante del cine o chiste divertido sobre el cine (estanran alamcenados en un json lo datos curioso) cada que quiera otro dato curioso o chiste debe regresar a la pagina de recompensas y volver a gastar un punto, luego 
+otra recompensa que se desbloquea con 5 puntos que diga "Tu emoji del dia" y al desbloquear esa recompensa le saldra un emoji aleatorio con una descripcion humoristica del mismo, 
+luego voy agregar dos tarjetas de felicitacion por cada una se desbloqeua con 5 puntos para verlas y ademas poder descargarlas en caso quieran, luego
+dos fondos de pantalla que costara 5 puntos para desbloquearlos y tambien una opcion de poder descargarlos, y hasta ahora otra rencompensa
+que son dos certificados o diplopas que costaran 10 puntos cada uno para desbloqueralos y tambien la opcion de descargarlos,  estnas recommpensas deben estar en una pagina aparte 
+ayudame con la logica y dejame espacio e indicame donde debo poner las imagenes para agregar y el resto puedes hacerlo tu
+te paso el codigo de la logica del proyecto para que lo entiendas :
+app.py:
+from flask import Flask, request, jsonify, render_template, app
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
 import json
 import random
 import requests
-from functools import wraps
-import os
+
+from flask import Flask
 
 # Inicializa la aplicación Flask
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Add a secret key for session management
-
 from sqlalchemy import create_engine
 
 # Configuración de la base de datos con SSL para pg8000
@@ -53,29 +59,6 @@ class Score(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-class Reward(db.Model):
-    __tablename__ = 'rewards'
-    id = db.Column(db.String(50), primary_key=True)  # Usamos String para admitir IDs como 'meme1', 'card1', etc.
-    name = db.Column(db.String(100), nullable=False)
-    cost = db.Column(db.Integer, nullable=False)
-
-class UserReward(db.Model):
-    __tablename__ = 'user_rewards'  # Nombre de la tabla en la base de datos
-
-    id = db.Column(db.Integer, primary_key=True)  # ID único para cada registro
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Referencia al usuario
-    reward_id = db.Column(db.String(50), db.ForeignKey('rewards.id'), nullable=False)  # Referencia a la recompensa (cadena)
-    date_redeemed = db.Column(db.DateTime, default=datetime.utcnow)  # Fecha de canje de la recompensa
-
-    # Relaciones con otros modelos
-    user = db.relationship('User', backref='rewards_claimed', lazy=True)  # Relación con el modelo User
-    reward = db.relationship('Reward', backref='users_claimed', lazy=True)  # Relación con el modelo Reward
-
-with app.app_context():
-    db.create_all()
-
-
-
 # Create database tables
 with app.app_context():
     db.create_all()
@@ -102,28 +85,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    # Store user info in session
-    session['user_id'] = user.id
-    session['username'] = user.username
-
     return jsonify({'id': user.id, 'username': user.username})
-
-@app.route('/check_session')
-def check_session():
-    if 'user_id' in session:
-        user = User.query.get(session['user_id'])
-        if user:
-            # Get user's total score
-            total_score = db.session.query(db.func.sum(Score.player_score)).filter_by(user_id=user.id).scalar() or 0
-            return jsonify({
-                'authenticated': True,
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'total_score': total_score
-                }
-            })
-    return jsonify({'authenticated': False})
 
 
 @app.route('/get_movie', methods=['POST'])
@@ -208,86 +170,6 @@ def save_score():
 
     db.session.commit()
     return jsonify({'message': 'Puntuación guardada correctamente'})
-
-@app.route('/get_rewards')
-def get_rewards():
-    rewards = Reward.query.all()
-    return jsonify([{'id': r.id, 'name': r.name, 'cost': r.cost} for r in rewards])
-
-@app.route('/rewards')
-def rewards():
-    return render_template('rewards.html')
-
-@app.route('/redeem_reward', methods=['POST'])
-def redeem_reward():
-    if 'user_id' not in session:
-        return jsonify({'error': 'No has iniciado sesión'}), 401
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Datos inválidos'}), 400
-        user_id = data.get('user_id')
-        reward_id = data.get('reward_id')  # Keep as string or number
-        cost = data.get('cost')
-        if not all([user_id, reward_id, cost]):
-            return jsonify({'error': 'Datos incompletos'}), 400
-
-        # Verificar que la recompensa exista
-        reward = Reward.query.filter(Reward.id == reward_id).first()  # Ya es una cadena
-        if not reward:
-            return jsonify({'error': 'Recompensa no encontrada'}), 404
-
-        # Verificar que el usuario exista
-        user = User.query.get(user_id)
-        if not user:
-            return jsonify({'error': 'Usuario no encontrado'}), 404
-
-        # Calcular el total de puntos del usuario
-        total_score = db.session.query(db.func.sum(Score.player_score)).filter_by(user_id=user_id).scalar() or 0
-
-        # Verificar si el usuario tiene suficientes puntos
-        if total_score < cost:
-            return jsonify({'error': 'Puntos insuficientes'}), 400
-
-        # Verificar si el usuario ya tiene esta recompensa
-        existing_reward = UserReward.query.filter_by(
-            user_id=user_id,
-            reward_id=reward_id
-        ).first()
-        if existing_reward:
-            return jsonify({'error': 'Ya tienes esta recompensa'}), 400
-
-        try:
-            # Actualizar los puntajes del usuario proporcionalmente
-            scores = Score.query.filter_by(user_id=user_id).all()
-            if not scores:
-                return jsonify({'error': 'No se encontró el puntaje del usuario'}), 404
-
-            points_to_deduct = cost
-            for score in scores:
-                score_ratio = score.player_score / total_score
-                points_from_this_score = int(points_to_deduct * score_ratio)
-                score.player_score = max(0, score.player_score - points_from_this_score)
-
-            # Crear un registro de recompensa canjeada
-            user_reward = UserReward(user_id=user_id, reward_id=reward_id)
-            db.session.add(user_reward)
-            db.session.commit()
-
-            # Calcular los puntos restantes después de deducir
-            remaining_points = db.session.query(db.func.sum(Score.player_score)).filter_by(user_id=user_id).scalar() or 0
-            return jsonify({
-                'message': 'Recompensa canjeada exitosamente',
-                'remaining_points': remaining_points
-            })
-        except Exception as e:
-            db.session.rollback()
-            app.logger.error(f'Error al procesar la recompensa: {str(e)}')
-            return jsonify({'error': 'Error al procesar la recompensa'}), 500
-    except Exception as e:
-        db.session.rollback()
-        app.logger.error(f'Error en redeem_reward: {str(e)}')
-        return jsonify({'error': 'Error interno del servidor'}), 500
 
 
 @app.route('/get_leaderboard')

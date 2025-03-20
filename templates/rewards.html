@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recompensas - Adivina la Película con Emojis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-gift"></i> Recompensas Disponibles</h1>
+        <div class="rewards-grid">
+            <div class="reward-category">
+                <h2><i class="fas fa-laugh"></i> Memes</h2>
+                <div class="reward-items">
+                    <div class="reward-item" data-cost="50">
+                        <h3>Meme 1</h3>
+                        <p>7 puntos</p>
+                        <button onclick="claimReward('meme1', 7)">Canjear</button>
+                    </div>
+                    <div class="reward-item" data-cost="75">
+                        <h3>Meme 2</h3>
+                        <p>7 puntos</p>
+                        <button onclick="claimReward('meme2', 7)">Canjear</button>
+                    </div>
+                    <div class="reward-item" data-cost="100">
+                        <h3>Meme 3</h3>
+                        <p>10 puntos</p>
+                        <button onclick="claimReward('meme3', 10)">Canjear</button>
+                    </div>
+                </div>
+            </div>
+            <div class="reward-category">
+                <h2><i class="fas fa-id-card"></i> Tarjetas</h2>
+                <div class="reward-items">
+                    <div class="reward-item" data-cost="150">
+                        <h3>Tarjeta 1</h3>
+                        <p>15 puntos</p>
+                        <button onclick="claimReward('card1', 15)">Canjear</button>
+                    </div>
+                    <div class="reward-item" data-cost="200">
+                        <h3>Tarjeta 2</h3>
+                        <p>20 puntos</p>
+                        <button onclick="claimReward('card2', 20)">Canjear</button>
+                    </div>
+                </div>
+            </div>
+            <div class="reward-category">
+                <h2><i class="fas fa-image"></i> Fondos de Pantalla</h2>
+                <div class="reward-items">
+                    <div class="reward-item" data-cost="250">
+                        <h3>Fondo 1</h3>
+                        <p>25 puntos</p>
+                        <button onclick="claimReward('wallpaper1', 25)">Canjear</button>
+                    </div>
+                    <div class="reward-item" data-cost="300">
+                        <h3>Fondo 2</h3>
+                        <p>30 puntos</p>
+                        <button onclick="claimReward('wallpaper2', 30)">Canjear</button>
+                    </div>
+                </div>
+            </div>
+            <div class="reward-category">
+                <h2><i class="fas fa-certificate"></i> Certificados</h2>
+                <div class="reward-items">
+                    <div class="reward-item" data-cost="400">
+                        <h3>Certificado 1</h3>
+                        <p>40 puntos</p>
+                        <button onclick="claimReward('cert1', 40)">Canjear</button>
+                    </div>
+                    <div class="reward-item" data-cost="500">
+                        <h3>Certificado 2</h3>
+                        <p>50 puntos</p>
+                        <button onclick="claimReward('cert2', 50)">Canjear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="user-points">
+            <h3>Tus Puntos: <span id="current-points">0</span></h3>
+        </div>
+        <!-- Botón "Volver al Juego" -->
+        <button onclick="goToCategoryScreen()" class="back-button">
+            <i class="fas fa-arrow-left"></i> Volver a Jugar
+        </button>
+    </div>
+    <div id="feedback-popup" class="popup"></div>
+    <style>
+        .reward-item {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .reward-item:hover {
+            transform: translateY(-5px);
+        }
+        .reward-item h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2em;
+        }
+        .reward-item p {
+            color: #666;
+            margin: 10px 0;
+        }
+        .reward-item button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .reward-item button:hover {
+            background-color: #45a049;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .modal img {
+            max-width: 90%;
+            max-height: 70vh;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+        .modal .download-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .modal .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        .popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #34a853;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        .popup.error {
+            background-color: #ea4335;
+        }
+    </style>
+    <div id="rewardModal" class="modal">
+        <span class="close-btn">&times;</span>
+        <img id="modalImage" src="" alt="Reward Preview">
+        <button class="download-btn" style="display: none;">Descargar</button>
+    </div>
+    <script>
+
+// Función para redirigir a la pantalla de selección de categoría
+function goToCategoryScreen() {
+    if (!currentUser) {
+        showFeedback('Debes iniciar sesión para jugar', false);
+        window.location.href = '/'; // Redirige a la página de inicio si no hay usuario
+        return;
+    }
+    showScreen('category-screen'); // Muestra la pantalla de selección de categoría
+}
+        let currentUser = null;
+        let userPoints = 0;
+
+        // Mostrar mensaje de retroalimentación
+        function showFeedback(message, isSuccess = true) {
+            const popup = document.getElementById('feedback-popup');
+            popup.textContent = message;
+            popup.className = `popup ${isSuccess ? 'success' : 'error'}`;
+            popup.style.display = 'block';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 2500);
+        }
+
+        // Verificar sesión del usuario
+        fetch('/check_session')
+            .then(response => response.json())
+            .then(data => {
+                if (data.authenticated) {
+                    currentUser = data.user;
+                    userPoints = data.user.total_score;
+                    document.getElementById('current-points').textContent = userPoints;
+                } else {
+                    window.location.href = '/';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showFeedback('Error al verificar la sesión', false);
+            });
+
+        // Abrir modal de recompensa
+        function openRewardModal(rewardId, imagePath) {
+            const modal = document.getElementById('rewardModal');
+            const modalImg = document.getElementById('modalImage');
+            const downloadBtn = modal.querySelector('.download-btn');
+
+            modalImg.src = imagePath;
+            downloadBtn.style.display = 'block';
+            downloadBtn.onclick = () => downloadReward(imagePath);
+
+            modal.style.display = 'flex';
+        }
+
+        // Descargar imagen de recompensa
+        function downloadReward(imagePath) {
+            const link = document.createElement('a');
+            link.href = imagePath;
+            link.download = `reward-${Date.now()}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Canjear recompensa
+        function claimReward(rewardId, cost) {
+            if (!currentUser) {
+                showFeedback('Debes iniciar sesión para canjear recompensas', false);
+                return;
+            }
+            if (userPoints < cost) {
+                showFeedback('No tienes suficientes puntos para esta recompensa', false);
+                return;
+            }
+
+            fetch('/redeem_reward', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: currentUser.id,
+                    reward_id: rewardId,
+                    cost: cost
+                }),
+                credentials: 'include'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => Promise.reject(data.error || 'Error al canjear la recompensa'));
+                }
+                return response.json();
+            })
+            .then(data => {
+                showFeedback('¡Recompensa canjeada con éxito!');
+                userPoints = data.remaining_points;
+                document.getElementById('current-points').textContent = userPoints;
+
+                // Mostrar modal con la imagen de la recompensa
+                const imagePath = `/static/images/rewards/${rewardId}.jpg`;
+                openRewardModal(rewardId, imagePath);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showFeedback(error.toString(), false);
+            });
+        }
+
+        // Cerrar modal al hacer clic fuera de él
+        window.onclick = (event) => {
+            const modal = document.getElementById('rewardModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // Cerrar modal al hacer clic en el botón de cierre
+        document.querySelector('#rewardModal .close-btn').onclick = () => {
+            const modal = document.getElementById('rewardModal');
+            modal.style.display = 'none';
+        };
+    </script>
+</body>
+</html>

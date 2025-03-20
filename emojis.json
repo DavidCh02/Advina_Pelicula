@@ -2,28 +2,53 @@
   "accion": [
     {
       "title": "Misión Imposible",
-      "emojis": "🏃♂️💣🏢",
+      "emojis": "🏃‍♂️💣🏢",
       "options": ["Misión Imposible", "El Código Da Vinci", "Duro de Matar", "La Jungla de Cristal"]
     },
     {
       "title": "Matrix",
       "emojis": "👨‍💻🕶️💊",
-      "options": ["Matrix", "Hackers", "Tron", "Inception"]
+      "options": ["Matrix", "Hackers", "Tron", "El Origen"]
     },
     {
       "title": "John Wick",
       "emojis": "🔫🐕💰",
-      "options": ["John Wick", "Transporter", "Taken", "El Justiciero"]
+      "options": ["John Wick", "El Transportador", "Búsqueda Implacable", "El Justiciero"]
     },
     {
-      "title": "Fast & Furious",
+      "title": "Rápidos y Furiosos",
       "emojis": "🏎️👨‍👩‍👧‍👦💨",
-      "options": ["Fast & Furious", "Need for Speed", "Gone in 60 Seconds", "Death Race"]
+      "options": ["Rápidos y Furiosos", "Need for Speed", "A 60 Segundos", "Carrera Mortal"]
     },
     {
-      "title": "Die Hard",
+      "title": "Duro de Matar",
       "emojis": "👮🏢💥",
-      "options": ["Die Hard", "Speed", "Air Force One", "Con Air"]
+      "options": ["Duro de Matar", "Máxima Velocidad", "Air Force One", "Con Air"]
+    },
+    {
+      "title": "Gladiador",
+      "emojis": "⚔️🛡️👑",
+      "options": ["Gladiador", "Troya", "300", "Espartaco"]
+    },
+    {
+      "title": "Mad Max: Furia en la Carretera",
+      "emojis": "🚗🔥🏜️",
+      "options": ["Mad Max: Furia en la Carretera", "Carrera Mortal", "Blade Runner", "El Último Desafío"]
+    },
+    {
+      "title": "Terminator 2: El Juicio Final",
+      "emojis": "🤖🔫👦",
+      "options": ["Terminator 2: El Juicio Final", "Ex Machina", "Blade Runner", "Robocop"]
+    },
+    {
+      "title": "Vengadores: Endgame",
+      "emojis": "🦸‍♂️🦸‍♀️⚔️",
+      "options": ["Vengadores: Endgame", "Liga de la Justicia", "Guardianes de la Galaxia", "Capitán América"]
+    },
+    {
+      "title": "Rambo",
+      "emojis": "💪🔫⛰️",
+      "options": ["Rambo", "Soldado Universal", "Commando", "Predator"]
     }
   ],
   "animacion": [
@@ -35,22 +60,47 @@
     {
       "title": "Frozen",
       "emojis": "👸❄️☃️",
-      "options": ["Frozen", "Moana", "Tangled", "Brave"]
+      "options": ["Frozen", "Moana", "Enredados", "Valiente"]
     },
     {
-      "title": "Finding Nemo",
+      "title": "Buscando a Nemo",
       "emojis": "🐠🌊🦈",
-      "options": ["Finding Nemo", "The Little Mermaid", "Shark Tale", "Big Fish"]
+      "options": ["Buscando a Nemo", "La Sirenita", "Shark Tale", "Big Fish"]
     },
     {
       "title": "Up",
       "emojis": "🎈🏠👴",
-      "options": ["Up", "Inside Out", "WALL-E", "Ratatouille"]
+      "options": ["Up", "Intensa-Mente", "WALL-E", "Ratatouille"]
     },
     {
-      "title": "Lion King",
+      "title": "El Rey León",
       "emojis": "🦁👑🌅",
-      "options": ["Lion King", "Madagascar", "Ice Age", "Kung Fu Panda"]
+      "options": ["El Rey León", "Madagascar", "La Era del Hielo", "Kung Fu Panda"]
+    },
+    {
+      "title": "Coco",
+      "emojis": "🎸💀🌸",
+      "options": ["Coco", "El Libro de la Vida", "Encanto", "Soul"]
+    },
+    {
+      "title": "Shrek",
+      "emojis": "👹👸🏰",
+      "options": ["Shrek", "Encantada", "Los Croods", "Valiente"]
+    },
+    {
+      "title": "Monsters Inc.",
+      "emojis": "👾🚪⚡",
+      "options": ["Monsters Inc.", "Mi Villano Favorito", "Hotel Transylvania", "Over the Hedge"]
+    },
+    {
+      "title": "Zootopia",
+      "emojis": "🦊🐰🚔",
+      "options": ["Zootopia", "Robin Hood", "Bolt", "Open Season"]
+    },
+    {
+      "title": "Spider-Man: Un Nuevo Universo",
+      "emojis": "🕷️🎨🌆",
+      "options": ["Spider-Man: Un Nuevo Universo", "Los Increíbles", "Big Hero 6", "Megamente"]
     }
   ],
   "terror": [
@@ -60,9 +110,9 @@
       "options": ["El Exorcista", "Poltergeist", "La Profecía", "El Conjuro"]
     },
     {
-      "title": "IT",
+      "title": "Eso",
       "emojis": "🤡🎈🌧️",
-      "options": ["IT", "Eso", "Payasos Asesinos", "El Circo del Terror"]
+      "options": ["Eso", "Payasos Asesinos", "El Circo del Terror", "El Conjuro"]
     },
     {
       "title": "El Resplandor",
@@ -78,6 +128,31 @@
       "title": "Tiburón",
       "emojis": "🦈🏊‍♂️🚤",
       "options": ["Tiburón", "Deep Blue Sea", "Open Water", "The Reef"]
+    },
+    {
+      "title": "Insidious",
+      "emojis": "👻👶🚪",
+      "options": ["Insidious", "Actividad Paranormal", "Los Otros", "El Anillo"]
+    },
+    {
+      "title": "Halloween",
+      "emojis": "🎃🔪🌙",
+      "options": ["Halloween", "Viernes 13", "Pesadilla en Elm Street", "Scream"]
+    },
+    {
+      "title": "La Monja",
+      "emojis": "🧕⛪😈",
+      "options": ["La Monja", "El Conjuro", "Annabelle", "El Exorcismo de Emily Rose"]
+    },
+    {
+      "title": "El Conjuro",
+      "emojis": "🕯️📖👻",
+      "options": ["El Conjuro", "La Casa de los Espíritus", "La Maldición", "Skyscraper"]
+    },
+    {
+      "title": "Hereditary",
+      "emojis": "⚰️🎭🔥",
+      "options": ["Hereditary", "Midsommar", "La Bruja", "Suspiria"]
     }
   ],
   "romantica": [
@@ -94,17 +169,42 @@
     {
       "title": "La La Land",
       "emojis": "🎹💃🌟",
-      "options": ["La La Land", "Chicago", "Moulin Rouge", "Fame"]
+      "options": ["La La Land", "Chicago", "Moulin Rouge", "Fama"]
     },
     {
-      "title": "Pretty Woman",
+      "title": "Mujer Bonita",
       "emojis": "👗💄💰",
-      "options": ["Pretty Woman", "Mujer Bonita", "Cómo Perder a un Hombre", "Notting Hill"]
+      "options": ["Mujer Bonita", "Mujer Bonita", "Cómo Perder a un Hombre", "Notting Hill"]
     },
     {
       "title": "Amor a Primera Vista",
       "emojis": "👀❤️⚡",
-      "options": ["Amor a Primera Vista", "500 Días con Ella", "Serendipity", "Antes del Amanecer"]
+      "options": ["Amor a Primera Vista", "500 Días con Ella", "Serendipia", "Antes del Amanecer"]
+    },
+    {
+      "title": "El Diario de Bridget Jones",
+      "emojis": "📚💔🍻",
+      "options": ["El Diario de Bridget Jones", "Sexo en la Ciudad", "Locamente Millonarios", "Vacaciones"]
+    },
+    {
+      "title": "El Príncipe y Yo",
+      "emojis": "👑👰💍",
+      "options": ["El Príncipe y Yo", "La Boda del Año", "La Propuesta", "Dos Semanas de Novio"]
+    },
+    {
+      "title": "Un Lugar donde Refugiarse",
+      "emojis": "📚💌🏡",
+      "options": ["Un Lugar donde Refugiarse", "PS: Te Amo", "Me Before You", "Bajo la Misma Estrella"]
+    },
+    {
+      "title": "10 Cosas que Odio de Ti",
+      "emojis": "👩‍🎤📚💞",
+      "options": ["10 Cosas que Odio de Ti", "Clueless", "Chicas Pesadas", "Ella es el Hombre"]
+    },
+    {
+      "title": "Como Perder a un Hombre en 10 Días",
+      "emojis": "📝💔💼",
+      "options": ["Como Perder a un Hombre en 10 Días", "La Fea Más Bella", "Justo al Instante", "Lanzamiento Fallido"]
     }
   ],
   "comedia": [
@@ -116,7 +216,7 @@
     {
       "title": "Zoolander",
       "emojis": "👱‍♂️👔📸",
-      "options": ["Zoolander", "El Diablo Viste a la Moda", "Click", "Bruce Todopoderoso"]
+      "options": ["Zoolander", "El Diablo Viste a la Moda", "Clic", "Bruce Todopoderoso"]
     },
     {
       "title": "Deadpool",
@@ -132,6 +232,31 @@
       "title": "Mi Pobre Angelito",
       "emojis": "👦🏠🎄",
       "options": ["Mi Pobre Angelito", "Jumanji", "Big", "Dennis the Menace"]
+    },
+    {
+      "title": "American Pie",
+      "emojis": "🥧🔞😂",
+      "options": ["American Pie", "Superbad", "La Resaca", "Vecinos"]
+    },
+    {
+      "title": "Borat",
+      "emojis": "🇰🇿🐴",
+      "options": ["Borat", "Bruno", "La Entrevista", "Jackass"]
+    },
+    {
+      "title": "Anchorman: La Leyenda de Ron Burgundy",
+      "emojis": "🎤📺😂",
+      "options": ["Anchorman", "Hermanos de Sangre", "Noche de Juegos", "Blades of Glory"]
+    },
+    {
+      "title": "El Dictador",
+      "emojis": "👑🐑😂",
+      "options": ["El Dictador", "La Entrevista", "América del Equipo", "Brüno"]
+    },
+    {
+      "title": "La Casa de las Conejas",
+      "emojis": "🐇🏠🎉",
+      "options": ["La Casa de las Conejas", "La Granja de los Conejos", "Horton", "Zootopia"]
     }
   ]
 }
