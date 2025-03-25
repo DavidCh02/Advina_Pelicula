@@ -11,7 +11,7 @@ from sqlalchemy import text
 
 # Inicializa la aplicación Flask
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Clave secreta para la gestión de sesión
+app.secret_key = 'https://api.render.com/deploy/srv-cvhfr4ggph6c73fl381g?key=s8zsOaO0sik'  # Clave secreta para la gestión de sesión
 
 # Configuración de la base de datos con SSL para pg8000
 DB_URL = "postgresql+pg8000://ultimo_humano_user:q83MoA2qaSlEbzKce2WnkXEt9z5LjfOO@dpg-cv4959qj1k6c738evoog-a.oregon-postgres.render.com/ultimo_humano"
@@ -31,9 +31,6 @@ GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0
 # Load movie data
 with open('emojis.json', 'r', encoding='utf-8') as f:
     movies_data = json.load(f)
-    
-from flask import Flask
-app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 # -------------------- MODELOS DE BASE DE DATOS --------------------
 
