@@ -7,16 +7,14 @@ import random
 import requests
 from functools import wraps
 import os
+from sqlalchemy import text
 
 # Inicializa la aplicación Flask
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Add a secret key for session management
-
-from sqlalchemy import create_engine
+app.secret_key = 'your-secret-key-here'  # Clave secreta para la gestión de sesión
 
 # Configuración de la base de datos con SSL para pg8000
 DB_URL = "postgresql+pg8000://ultimo_humano_user:q83MoA2qaSlEbzKce2WnkXEt9z5LjfOO@dpg-cv4959qj1k6c738evoog-a.oregon-postgres.render.com/ultimo_humano"
-
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     "connect_args": {
@@ -25,6 +23,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 db = SQLAlchemy(app)
+
 # Gemini API configuration
 GEMINI_API_KEY = "AIzaSyCe7CKTouKq-4BuAZ2G62pWD1q55nii4Kg"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
@@ -33,15 +32,16 @@ GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0
 with open('emojis.json', 'r', encoding='utf-8') as f:
     movies_data = json.load(f)
 
+# -------------------- MODELOS DE BASE DE DATOS --------------------
 
-# Database Models
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     scores = db.relationship('Score', backref='user', lazy=True)
-
+    # Relación para comentarios (opcional, para acceder desde el usuario)
+    comentarios = db.relationship('Comment', backref='user', lazy=True)
 
 class Score(db.Model):
     __tablename__ = 'scores'
@@ -52,39 +52,43 @@ class Score(db.Model):
     category = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-
 class Reward(db.Model):
     __tablename__ = 'rewards'
-    id = db.Column(db.String(50), primary_key=True)  # Usamos String para admitir IDs como 'meme1', 'card1', etc.
+    id = db.Column(db.String(50), primary_key=True)  # IDs como 'meme1', 'card1', etc.
     name = db.Column(db.String(100), nullable=False)
     cost = db.Column(db.Integer, nullable=False)
 
 class UserReward(db.Model):
-    __tablename__ = 'user_rewards'  # Nombre de la tabla en la base de datos
+    __tablename__ = 'user_rewards'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    reward_id = db.Column(db.String(50), db.ForeignKey('rewards.id'), nullable=False)
+    date_redeemed = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='rewards_claimed', lazy=True)
+    reward = db.relationship('Reward', backref='users_claimed', lazy=True)
 
-    id = db.Column(db.Integer, primary_key=True)  # ID único para cada registro
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Referencia al usuario
-    reward_id = db.Column(db.String(50), db.ForeignKey('rewards.id'), nullable=False)  # Referencia a la recompensa (cadena)
-    date_redeemed = db.Column(db.DateTime, default=datetime.utcnow)  # Fecha de canje de la recompensa
+# -------------------- NUEVO MODELO: Comment --------------------
+class Comment(db.Model):
+    __tablename__ = 'comentarios'
+    id = db.Column(db.Integer, primary_key=True)
+    comentario = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relaciones con otros modelos
-    user = db.relationship('User', backref='rewards_claimed', lazy=True)  # Relación con el modelo User
-    reward = db.relationship('Reward', backref='users_claimed', lazy=True)  # Relación con el modelo Reward
-
+# Crear las tablas en la base de datos
 with app.app_context():
     db.create_all()
 
-
-
-# Create database tables
-with app.app_context():
-    db.create_all()
-
-
-# Routes
+# -------------------- RUTAS --------------------
+MOVIES_FILE = 'emojis.json'
 @app.route('/')
 def index():
     return render_template('index.html')
+@app.route('/admin')
+def admin_panel():
+    # Sólo para pruebas, en producción deberías proteger esta ruta con autenticación
+    return render_template('admin.html')
+
 
 
 @app.route('/register', methods=['POST'])
@@ -102,7 +106,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    # Store user info in session
+    # Almacenar la información del usuario en la sesión
     session['user_id'] = user.id
     session['username'] = user.username
 
@@ -113,7 +117,7 @@ def check_session():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
         if user:
-            # Get user's total score
+            # Obtener el puntaje total del usuario
             total_score = db.session.query(db.func.sum(Score.player_score)).filter_by(user_id=user.id).scalar() or 0
             return jsonify({
                 'authenticated': True,
@@ -124,7 +128,6 @@ def check_session():
                 }
             })
     return jsonify({'authenticated': False})
-
 
 @app.route('/get_movie', methods=['POST'])
 def get_movie():
@@ -144,7 +147,6 @@ def get_movie():
         'correct_answer': movie['title']
     })
 
-
 @app.route('/ai_guess', methods=['POST'])
 def ai_guess():
     data = request.get_json()
@@ -153,7 +155,6 @@ def ai_guess():
     if not emojis:
         return jsonify({'error': 'Emojis are required'}), 400
 
-    # Prepare prompt for Gemini API
     prompt = f"Adivina el título de la película basada en estos emojis: {emojis}. Responde solo con el título Español-latino."
 
     try:
@@ -177,7 +178,6 @@ def ai_guess():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/save_score', methods=['POST'])
 def save_score():
     data = request.get_json()
@@ -189,15 +189,11 @@ def save_score():
     if not all([user_id, player_score is not None, ai_score is not None, category]):
         return jsonify({'error': 'Datos incompletos'}), 400
 
-    # Buscar un registro existente
     score = Score.query.filter_by(user_id=user_id, category=category).first()
-
     if score:
-        # Actualizar puntajes acumulados
         score.player_score = player_score
         score.ai_score = ai_score
     else:
-        # Crear un nuevo registro
         score = Score(
             user_id=user_id,
             player_score=player_score,
@@ -227,29 +223,23 @@ def redeem_reward():
         if not data:
             return jsonify({'error': 'Datos inválidos'}), 400
         user_id = data.get('user_id')
-        reward_id = data.get('reward_id')  # Keep as string or number
+        reward_id = data.get('reward_id')
         cost = data.get('cost')
         if not all([user_id, reward_id, cost]):
             return jsonify({'error': 'Datos incompletos'}), 400
 
-        # Verificar que la recompensa exista
-        reward = Reward.query.filter(Reward.id == reward_id).first()  # Ya es una cadena
+        reward = Reward.query.filter(Reward.id == reward_id).first()
         if not reward:
             return jsonify({'error': 'Recompensa no encontrada'}), 404
 
-        # Verificar que el usuario exista
         user = User.query.get(user_id)
         if not user:
             return jsonify({'error': 'Usuario no encontrado'}), 404
 
-        # Calcular el total de puntos del usuario
         total_score = db.session.query(db.func.sum(Score.player_score)).filter_by(user_id=user_id).scalar() or 0
-
-        # Verificar si el usuario tiene suficientes puntos
         if total_score < cost:
             return jsonify({'error': 'Puntos insuficientes'}), 400
 
-        # Verificar si el usuario ya tiene esta recompensa
         existing_reward = UserReward.query.filter_by(
             user_id=user_id,
             reward_id=reward_id
@@ -258,7 +248,6 @@ def redeem_reward():
             return jsonify({'error': 'Ya tienes esta recompensa'}), 400
 
         try:
-            # Actualizar los puntajes del usuario proporcionalmente
             scores = Score.query.filter_by(user_id=user_id).all()
             if not scores:
                 return jsonify({'error': 'No se encontró el puntaje del usuario'}), 404
@@ -269,12 +258,10 @@ def redeem_reward():
                 points_from_this_score = int(points_to_deduct * score_ratio)
                 score.player_score = max(0, score.player_score - points_from_this_score)
 
-            # Crear un registro de recompensa canjeada
             user_reward = UserReward(user_id=user_id, reward_id=reward_id)
             db.session.add(user_reward)
             db.session.commit()
 
-            # Calcular los puntos restantes después de deducir
             remaining_points = db.session.query(db.func.sum(Score.player_score)).filter_by(user_id=user_id).scalar() or 0
             return jsonify({
                 'message': 'Recompensa canjeada exitosamente',
@@ -288,7 +275,6 @@ def redeem_reward():
         db.session.rollback()
         app.logger.error(f'Error en redeem_reward: {str(e)}')
         return jsonify({'error': 'Error interno del servidor'}), 500
-
 
 @app.route('/get_leaderboard')
 def get_leaderboard():
@@ -307,7 +293,6 @@ def get_leaderboard():
         } for score in scores
     ])
 
-
 @app.route('/leaderboard')
 def leaderboard():
     scores = db.session.query(
@@ -325,6 +310,48 @@ def leaderboard():
         } for score in scores
     ])
 
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'message': 'Logged out successfully'}), 200
+
+# -------------------- RUTA PARA COMENTARIOS --------------------
+
+@app.route('/submit_comment', methods=['POST'])
+def submit_comment():
+    try:
+        data = request.get_json()
+        comentario_text = data.get('comentario')
+
+        if not comentario_text or not comentario_text.strip():
+            return jsonify({'status': 'error', 'message': 'El comentario no puede estar vacío'}), 400
+
+        # Verificar si el usuario está autenticado mediante la sesión
+        if 'user_id' not in session:
+            return jsonify({'status': 'error', 'message': 'Usuario no autenticado'}), 401
+
+        user_id = session['user_id']
+        user = db.session.get(User, user_id)
+        if not user:
+            return jsonify({'status': 'error', 'message': 'Usuario no encontrado'}), 404
+
+        # Crear la instancia del comentario y guardarlo en la base de datos
+        comment = Comment(comentario=comentario_text, user_id=user_id)
+        db.session.add(comment)
+        db.session.commit()
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Comentario insertado correctamente',
+            'user_id': user_id,
+            'user_name': user.username
+        })
+    except Exception as e:
+        app.logger.error(f"Error al insertar comentario: {e}")
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+from admin_routes import *
 
 if __name__ == '__main__':
     app.run(debug=True)

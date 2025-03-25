@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel Administrativo - Control del Juego</title>
+  <style>
+    /* Estilos generales */
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background-color: #f7f7f7;
+      color: #333;
+    }
+    header, nav, main {
+      padding: 1em;
+      margin: 0 auto;
+      max-width: 1200px;
+    }
+    header {
+      background-color: #444;
+      color: #fff;
+      text-align: center;
+    }
+    nav {
+      background: #eee;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      margin-top: 1em;
+    }
+    nav button {
+      padding: 0.5em 1em;
+      border: none;
+      background-color: #4CAF50;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    nav button:hover {
+      background-color: #45a049;
+    }
+    main {
+      background: #fff;
+      padding: 1em;
+      margin-top: 1em;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1em;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 0.5em;
+      text-align: left;
+    }
+    input[type="text"], input[type="number"], input[type="password"] {
+      padding: 0.5em;
+      width: 200px;
+      margin-right: 0.5em;
+    }
+    input[type="file"] {
+      margin-top: 0.5em;
+    }
+    button.action-btn {
+      margin-right: 0.5em;
+      padding: 0.3em 0.8em;
+      border: none;
+      border-radius: 3px;
+      background-color: #008CBA;
+      color: #fff;
+      cursor: pointer;
+    }
+    button.action-btn:hover {
+      background-color: #007bb5;
+    }
+    /* Login */
+    #loginDiv {
+      max-width: 400px;
+      margin: 100px auto;
+      background: #fff;
+      padding: 2em;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    #loginDiv input {
+      display: block;
+      margin: 1em auto;
+      width: 80%;
+      padding: 0.5em;
+    }
+    #loginDiv button {
+      padding: 0.5em 1em;
+      background: #4CAF50;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    /* Mensaje de feedback */
+    .feedback {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #34a853;
+      color: #fff;
+      padding: 0.8em 1.2em;
+      border-radius: 5px;
+      display: none;
+      z-index: 9999;
+    }
+    .feedback.error { background: #ea4335; }
+  </style>
+</head>
+<body>
+  <!-- Formulario de login para el desarrollador -->
+  <div id="loginDiv">
+    <h2>Administración - Iniciar Sesión</h2>
+    <form id="loginForm">
+      <input type="text" id="adminUser" placeholder="Usuario" required>
+      <input type="password" id="adminPass" placeholder="Contraseña" required>
+      <button type="submit">Ingresar</button>
+    </form>
+  </div>
+
+  <!-- Panel Administrativo (oculto hasta autenticarse) -->
+  <div id="adminPanel" style="display:none;">
+    <header>
+      <h1>Panel Administrativo - Control Total del Juego</h1>
+    </header>
+    <nav>
+      <button data-section="usuarios">Usuarios</button>
+      <button data-section="recompensas">Recompensas</button>
+      <button data-section="comentarios">Comentarios</button>
+      <button data-section="recompensas-canjeadas">Recompensas Canjeadas</button>
+      <button data-section="leaderboard">Tabla de Posiciones</button>
+      <button data-section="peliculas">Películas</button>
+      <button data-section="datos">Emoji/Datos Curiosos</button>
+      <button id="logoutAdmin">Cerrar Sesión</button>
+    </nav>
+    <main id="sectionContent">
+      <!-- Contenido dinámico -->
+      <h2>Bienvenido al Panel Administrativo</h2>
+      <p>Seleccione una sección para comenzar.</p>
+    </main>
+  </div>
+<div id="rewards-section" style="display: none;">
+  <h2>Recompensas Canjeadas</h2>
+  <table id="redeemed-rewards-table">
+    <tr>
+      <th>Usuario</th>
+      <th>Recompensa</th>
+      <th>Fecha</th>
+    </tr>
+  </table>
+</div>
+
+
+  <!-- Mensaje de feedback -->
+  <div id="feedback" class="feedback"></div>
+
+  <script>
+function loadRedeemedRewards() {
+  fetch('/admin/rewards/redeemed')
+    .then(res => res.json())
+    .then(data => {
+      let html = `<h2>Recompensas Canjeadas</h2>
+        <table>
+          <tr><th>Usuario</th><th>Recompensa</th><th>Fecha</th></tr>`;
+
+      data.forEach(r => {
+        html += `<tr>
+          <td>${r.user}</td>
+          <td>${r.reward}</td>
+          <td>${r.timestamp}</td>
+        </tr>`;
+      });
+
+      html += `</table>`;
+      sectionContent.innerHTML = html;
+    })
+    .catch(() => {
+      sectionContent.innerHTML = "<p>Error al cargar recompensas canjeadas</p>";
+    });
+}
+
+// Agregar evento para la navegación
+document.querySelector("button[data-section='recompensas-canjeadas']").addEventListener("click", () => {
+  loadSection("recompensas-canjeadas");
+});
+
+
+
+    /************** ADMINISTRACIÓN - JavaScript **************/
+    // Credenciales definidas (cámbialas según necesites)
+    const DEVELOPER_USERNAME = "123";
+    const DEVELOPER_PASSWORD = "123";
+
+    // Elementos
+    const loginDiv = document.getElementById("loginDiv");
+    const adminPanel = document.getElementById("adminPanel");
+    const loginForm = document.getElementById("loginForm");
+    const feedbackEl = document.getElementById("feedback");
+    const sectionContent = document.getElementById("sectionContent");
+    const logoutAdmin = document.getElementById("logoutAdmin");
+
+    // Login del desarrollador
+    loginForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const user = document.getElementById("adminUser").value;
+      const pass = document.getElementById("adminPass").value;
+      if(user === DEVELOPER_USERNAME && pass === DEVELOPER_PASSWORD) {
+        loginDiv.style.display = "none";
+        adminPanel.style.display = "block";
+        loadSection("usuarios");
+      } else {
+        showFeedback("Credenciales incorrectas", true);
+      }
+    });
+
+    // Logout: recargar la página
+    logoutAdmin.addEventListener("click", () => {
+      location.reload();
+    });
+
+    // Feedback
+    function showFeedback(message, isError = false) {
+      feedbackEl.innerText = message;
+      feedbackEl.className = "feedback" + (isError ? " error" : "");
+      feedbackEl.style.display = "block";
+      setTimeout(() => { feedbackEl.style.display = "none"; }, 3000);
+    }
+
+    // Navegación
+    document.querySelectorAll("nav button[data-section]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const section = btn.getAttribute("data-section");
+        loadSection(section);
+      });
+    });
+
+    // Función principal para cargar secciones
+    function loadSection(section) {
+      sectionContent.innerHTML = `<h2>Cargando ${section}...</h2>`;
+      switch(section) {
+        case "usuarios": loadUsers(); break;
+        case "recompensas": loadRewards(); break;
+        case "comentarios": loadComments(); break;
+        case "recompensas-canjeadas": loadRedeemedRewards(); break;
+        case "leaderboard": loadLeaderboard(); break;
+        case "peliculas": loadMovies(); break;
+        case "datos": loadDatos(); break;
+        default: sectionContent.innerHTML = "<p>Sección no encontrada.</p>";
+      }
+    }
+
+    /****************** Usuarios ******************/
+    function loadUsers() {
+      fetch('/admin/users')
+        .then(res => res.json())
+        .then(users => {
+          let html = `<h2>Administrar Usuarios</h2>
+            <table>
+              <tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr>`;
+          users.forEach(u => {
+            html += `<tr>
+              <td>${u.id}</td>
+              <td contenteditable="true" data-userid="${u.id}" class="username">${u.username}</td>
+              <td>
+                <button class="action-btn" onclick="updateUser(${u.id})">Actualizar</button>
+                <button class="action-btn" onclick="deleteUser(${u.id})">Eliminar</button>
+              </td>
+            </tr>`;
+          });
+          html += `</table>
+            <h3>Agregar Usuario</h3>
+            <input type="text" id="newUsername" placeholder="Nombre">
+            <button class="action-btn" onclick="addUser()">Agregar</button>`;
+          sectionContent.innerHTML = html;
+        })
+        .catch(() => { sectionContent.innerHTML = "<p>Error al cargar usuarios</p>"; });
+    }
+    function updateUser(userId) {
+      const td = document.querySelector(`td.username[data-userid='${userId}']`);
+      const newUsername = td.innerText;
+      fetch('/admin/users/' + userId, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username: newUsername})
+      })
+      .then(res => res.json())
+      .then(() => { showFeedback("Usuario actualizado"); loadUsers(); })
+      .catch(() => { showFeedback("Error actualizando usuario", true); });
+    }
+    function deleteUser(userId) {
+      if(confirm("¿Eliminar usuario?")) {
+        fetch('/admin/users/' + userId, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(() => { showFeedback("Usuario eliminado"); loadUsers(); })
+          .catch(() => { showFeedback("Error eliminando usuario", true); });
+      }
+    }
+    function addUser() {
+      const newUsername = document.getElementById("newUsername").value;
+      if(newUsername.trim() === "") { showFeedback("Nombre vacío", true); return; }
+      fetch('/admin/users', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username: newUsername})
+      })
+      .then(res => res.json())
+      .then(() => { showFeedback("Usuario agregado"); loadUsers(); })
+      .catch(() => { showFeedback("Error agregando usuario", true); });
+    }
+
+    /****************** Recompensas ******************/
+    function loadRewards() {
+      fetch('/admin/rewards')
+        .then(res => res.json())
+        .then(rewards => {
+          let html = `<h2>Administrar Recompensas</h2>
+            <table>
+              <tr><th>ID</th><th>Nombre</th><th>Costo</th><th>Imagen</th><th>Acciones</th></tr>`;
+          rewards.forEach(r => {
+            html += `<tr>
+              <td>${r.id}</td>
+              <td contenteditable="true" data-rewardid="${r.id}" class="rewardName">${r.name}</td>
+              <td contenteditable="true" data-rewardid="${r.id}" class="rewardCost">${r.cost}</td>
+              <td>
+                <img src="${r.image_url || '/static/images/rewards/' + r.id + '.jpg'}" alt="${r.name}" width="50">
+                <input type="file" onchange="uploadRewardImage(event, '${r.id}')" />
+              </td>
+              <td>
+                <button class="action-btn" onclick="updateReward('${r.id}')">Actualizar</button>
+                <button class="action-btn" onclick="deleteReward('${r.id}')">Eliminar</button>
+              </td>
+            </tr>`;
+          });
+          html += `</table>
+            <h3>Agregar Recompensa</h3>
+            <input type="text" id="newRewardId" placeholder="ID (ej: meme4)">
+            <input type="text" id="newRewardName" placeholder="Nombre">
+            <input type="number" id="newRewardCost" placeholder="Costo">
+            <input type="file" id="newRewardImage">
+            <button class="action-btn" onclick="addReward()">Agregar</button>`;
+          sectionContent.innerHTML = html;
+        })
+        .catch(() => { sectionContent.innerHTML = "<p>Error al cargar recompensas</p>"; });
+    }
+    function updateReward(rewardId) {
+      const nameTd = document.querySelector(`td.rewardName[data-rewardid='${rewardId}']`);
+      const costTd = document.querySelector(`td.rewardCost[data-rewardid='${rewardId}']`);
+      const newName = nameTd.innerText;
+      const newCost = costTd.innerText;
+      fetch('/admin/rewards/' + rewardId, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name: newName, cost: newCost})
+      })
+      .then(res => res.json())
+      .then(() => { showFeedback("Recompensa actualizada"); loadRewards(); })
+      .catch(() => { showFeedback("Error actualizando recompensa", true); });
+    }
+    function deleteReward(rewardId) {
+      if(confirm("¿Eliminar recompensa?")) {
+        fetch('/admin/rewards/' + rewardId, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(() => { showFeedback("Recompensa eliminada"); loadRewards(); })
+          .catch(() => { showFeedback("Error eliminando recompensa", true); });
+      }
+    }
+    function uploadRewardImage(event, rewardId) {
+      const file = event.target.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+      fetch('/admin/rewards/' + rewardId + '/image', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(() => { showFeedback("Imagen actualizada"); loadRewards(); })
+      .catch(() => { showFeedback("Error subiendo imagen", true); });
+    }
+    function addReward() {
+      const id = document.getElementById("newRewardId").value;
+      const name = document.getElementById("newRewardName").value;
+      const cost = document.getElementById("newRewardCost").value;
+      const imageInput = document.getElementById("newRewardImage");
+      const formData = new FormData();
+      formData.append('id', id);
+      formData.append('name', name);
+      formData.append('cost', cost);
+      if(imageInput.files[0]) { formData.append('image', imageInput.files[0]); }
+      fetch('/admin/rewards', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(() => { showFeedback("Recompensa agregada"); loadRewards(); })
+      .catch(() => { showFeedback("Error agregando recompensa", true); });
+    }
+
+    /****************** Comentarios ******************/
+    function loadComments() {
+      fetch('/admin/comments')
+        .then(res => res.json())
+        .then(comments => {
+          let html = `<h2>Comentarios</h2>
+            <table>
+              <tr><th>ID</th><th>Usuario</th><th>Comentario</th><th>Fecha</th><th>Acciones</th></tr>`;
+          comments.forEach(c => {
+            html += `<tr>
+              <td>${c.id}</td>
+              <td>${c.user_name || 'Anónimo'}</td>
+              <td>${c.comentario}</td>
+              <td>${c.created_at}</td>
+              <td>
+                <button class="action-btn" onclick="deleteComment(${c.id})">Eliminar</button>
+              </td>
+            </tr>`;
+          });
+          html += `</table>`;
+          sectionContent.innerHTML = html;
+        })
+        .catch(() => { sectionContent.innerHTML = "<p>Error al cargar comentarios</p>"; });
+    }
+    function deleteComment(commentId) {
+      if(confirm("¿Eliminar comentario?")) {
+        fetch('/admin/comments/' + commentId, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(() => { showFeedback("Comentario eliminado"); loadComments(); })
+          .catch(() => { showFeedback("Error eliminando comentario", true); });
+      }
+    }
+
+    /****************** Tabla de Posiciones ******************/
+    function loadLeaderboard() {
+      fetch('/admin/leaderboard')
+        .then(res => res.json())
+        .then(data => {
+          let html = `<h2>Tabla de Posiciones</h2>
+            <table>
+              <tr><th>Usuario</th><th>Puntos Jugador</th><th>Puntos AI</th><th>Acciones</th></tr>`;
+          data.forEach(l => {
+            html += `<tr>
+              <td>${l.username}</td>
+              <td contenteditable="true" data-user="${l.user_id}" class="playerScore">${l.player_score}</td>
+              <td>${l.ai_score}</td>
+              <td>
+                <button class="action-btn" onclick="updateScore(${l.user_id})">Actualizar</button>
+              </td>
+            </tr>`;
+          });
+          html += `</table>`;
+          sectionContent.innerHTML = html;
+        })
+        .catch(() => { sectionContent.innerHTML = "<p>Error al cargar la tabla de posiciones</p>"; });
+    }
+    function updateScore(userId) {
+      const td = document.querySelector(`td.playerScore[data-user='${userId}']`);
+      const newScore = td.innerText;
+      fetch('/admin/leaderboard/' + userId, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({player_score: newScore})
+      })
+      .then(res => res.json())
+      .then(() => { showFeedback("Puntuación actualizada"); loadLeaderboard(); })
+      .catch(() => { showFeedback("Error actualizando puntuación", true); });
+    }
+
+    /****************** Películas ******************/
+    function loadMovies() {
+      fetch('/admin/movies')
+        .then(res => res.json())
+        .then(movies => {
+          let html = `<h2>Administrar Películas</h2>
+            <table>
+              <tr><th>ID</th><th>Emojis</th><th>Opciones</th><th>Título</th><th>Acciones</th></tr>`;
+          movies.forEach(m => {
+            html += `<tr>
+              <td>${m.id}</td>
+              <td contenteditable="true" data-movieid="${m.id}" class="emojis">${m.emojis}</td>
+              <td contenteditable="true" data-movieid="${m.id}" class="options">${m.options.join(', ')}</td>
+              <td contenteditable="true" data-movieid="${m.id}" class="title">${m.title}</td>
+              <td>
+                <button class="action-btn" onclick="updateMovie(${m.id})">Actualizar</button>
+                <button class="action-btn" onclick="deleteMovie(${m.id})">Eliminar</button>
+              </td>
+            </tr>`;
+          });
+          html += `</table>
+            <h3>Agregar Película</h3>
+            <input type="text" id="newEmojis" placeholder="Emojis">
+            <input type="text" id="newOptions" placeholder="Opciones (separadas por coma)">
+            <input type="text" id="newTitle" placeholder="Título">
+            <button class="action-btn" onclick="addMovie()">Agregar</button>`;
+          sectionContent.innerHTML = html;
+        })
+        .catch(() => { sectionContent.innerHTML = "<p>Error al cargar películas</p>"; });
+    }
+
+    function updateMovie(movieId) {
+        if (!movieId) {
+            showFeedback("Error: ID de película no encontrado", true);
+            return;
+        }
+
+        const emojiTd = document.querySelector(`td.emojis[data-movieid='${movieId}']`);
+        const optionsTd = document.querySelector(`td.options[data-movieid='${movieId}']`);
+        const titleTd = document.querySelector(`td.title[data-movieid='${movieId}']`);
+
+        if (!emojiTd || !optionsTd || !titleTd) {
+            showFeedback("Error: No se encontraron los campos de la película", true);
+            return;
+        }
+
+        const newEmojis = emojiTd.innerText;
+        const newOptions = optionsTd.innerText.split(",").map(opt => opt.trim());
+        const newTitle = titleTd.innerText;
+
+        fetch(`/admin/movies/${movieId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({emojis: newEmojis, options: newOptions, title: newTitle})
+        })
+                .then(res => res.json())
+                .then(() => {
+                    showFeedback("Película actualizada correctamente");
+                    loadMovies();
+                })
+                .catch(() => showFeedback("Error al actualizar la película", true));
+    }
+
+    function deleteMovie(movieId) {
+      if(confirm("¿Eliminar película?")) {
+        fetch('/admin/movies/' + movieId, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(() => { showFeedback("Película eliminada"); loadMovies(); })
+          .catch(() => { showFeedback("Error eliminando película", true); });
+      }
+    }
+    function addMovie() {
+      const emojis = document.getElementById("newEmojis").value;
+      const options = document.getElementById("newOptions").value.split(',').map(s => s.trim());
+      const title = document.getElementById("newTitle").value;
+      fetch('/admin/movies', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({emojis, options, title})
+      })
+      .then(res => res.json())
+      .then(() => { showFeedback("Película agregada"); loadMovies(); })
+      .catch(() => { showFeedback("Error agregando película", true); });
+    }
+
+    /****************** Emoji del Día y Datos Curiosos ******************/
+    function loadDatos() {
+        fetch('/admin/datos')
+                .then(res => res.json())
+                .then(data => {
+                    let html = `<h2>Emoji del Día y Datos Curiosos</h2>`;
+                    // Mostrar Emoji del Día
+                    html += `<h3>Emoji del Día</h3>`;
+                    for (let category in data.emoji_descriptions) {
+                        html += `<h4>${category}</h4><table>
+                       <tr><th>Emoji</th><th>Descripción</th><th>Acciones</th></tr>`;
+                        data.emoji_descriptions[category].forEach((item, index) => {
+                            html += `<tr>
+                        <td contenteditable="true" data-cat="${category}" data-index="${index}" class="emoji">${item.emoji}</td>
+                        <td contenteditable="true" data-cat="${category}" data-index="${index}" class="description">${item.description}</td>
+                        <td>
+                          <button class="action-btn" onclick="updateEmoji('${category}', ${index})">Actualizar</button>
+                          <button class="action-btn" onclick="deleteEmoji('${category}', ${index})">Eliminar</button>
+                        </td>
+                      </tr>`;
+                        });
+                        html += `</table>`;
+                    }
+                    // Mostrar Fun Facts
+                    html += `<h3>Datos Curiosos</h3>`;
+                    for (let category in data.fun_facts) {
+                        html += `<h4>${category}</h4><table>
+                       <tr><th>Dato</th><th>Acciones</th></tr>`;
+                        data.fun_facts[category].forEach((fact, index) => {
+                            html += `<tr>
+                        <td contenteditable="true" data-cat="${category}" data-index="${index}" class="fact">${fact}</td>
+                        <td>
+                          <button class="action-btn" onclick="updateFunFact('${category}', ${index})">Actualizar</button>
+                          <button class="action-btn" onclick="deleteFunFact('${category}', ${index})">Eliminar</button>
+                        </td>
+                      </tr>`;
+                        });
+                        html += `</table>`;
+                    }
+                    sectionContent.innerHTML = html;
+                })
+                .catch(() => {
+                    sectionContent.innerHTML = "<p>Error al cargar datos curiosos</p>";
+                });
+    }
+
+    function updateEmoji(emojiId) {
+        const td = document.querySelector(`td[data-emojiid='${emojiId}']`);
+        if (!td) {
+            showFeedback("Error: No se encontró el campo de emoji", true);
+            return;
+        }
+
+        const newEmojiText = td.innerText;
+
+        fetch(`/admin/emojis/${emojiId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({emoji: newEmojiText})
+        })
+                .then(res => res.json())
+                .then(() => {
+                    showFeedback("Emoji actualizado");
+                    loadSection("recompensas");
+                })
+                .catch(() => showFeedback("Error al actualizar emoji", true));
+    }
+
+
+    function deleteEmoji(edId) {
+      if(confirm("¿Eliminar emoji?")) {
+        fetch('/admin/datos/emoji/' + edId, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(() => { showFeedback("Emoji eliminado"); loadDatos(); })
+          .catch(() => { showFeedback("Error eliminando emoji", true); });
+      }
+    }
+    function updateFunFact(funFactId) {
+        const td = document.querySelector(`td[data-funfactid='${funFactId}']`);
+        if (!td) {
+            showFeedback("Error: No se encontró el campo del dato curioso", true);
+            return;
+        }
+
+        const newFunFact = td.innerText;
+
+        fetch(`/admin/funfacts/${funFactId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({funfact: newFunFact})
+        })
+                .then(res => res.json())
+                .then(() => {
+                    showFeedback("Dato curioso actualizado");
+                    loadSection("datos");
+                })
+                .catch(() => showFeedback("Error al actualizar el dato curioso", true));
+    }
+
+    function deleteFunFact(factId) {
+      if(confirm("¿Eliminar Fun Fact?")) {
+        fetch('/admin/datos/funfact/' + factId, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(() => { showFeedback("Fun Fact eliminado"); loadDatos(); })
+          .catch(() => { showFeedback("Error eliminando Fun Fact", true); });
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="icon" type="image/png" href="static/images/logo.png">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adivina la Película con Emojis</title>
@@ -18,6 +20,7 @@
 </head>
 <body>
 <div class="container">
+
     <!-- Pantalla de Registro -->
     <div id="register-screen" class="screen active">
         <h1><i class="fas fa-film"></i> Adivina la Película con emojis 🤩</h1>
@@ -26,7 +29,10 @@
             <label for="username"></label>
             <input type="text" id="username" placeholder="Trata de que tu nombre sea unico">
         </div>
-        <button onclick="register()"><i class="fas fa-play"></i> ¿Listo?</button>
+        <button onclick="register()"><i class="fas fa-play"></i> Jugar</button>
+
+        <!-- Botón para simular avance de ronda y sumar puntos -->
+
     </div>
 
     <!-- Pantalla de Selección de Categoría -->
@@ -36,6 +42,7 @@
             <div class="info-box">
                 <i class="fas fa-info-circle"></i>
                 <span>Cada que escojes una categoria tus puntos se acomulan</span>
+
             </div>
         <div class="category-buttons">
             <button class="category-button" data-category="accion" onclick="selectCategory('accion')">
@@ -56,13 +63,16 @@
             <button class="category-button" data-category="aleatorio" onclick="selectCategory('aleatorio')">
                 <i class="fas fa-random"></i> Aleatorio
             </button>
-        <button onclick="showRewardsScreen()"><i class="fas fa-gift"></i> Ver Recompensas</button>
-
         </div>
+            <button onclick="window.location.href='/rewards'" class="rewards-btn">
+                <i class="fas fa-gift"></i> Canjear Recompensas
+            </button>
+
     </div>
 
     <!-- Pantalla de Juego -->
     <div id="game-screen" class="screen">
+
         <div class="scores">
             <div>
                 <i class="fas fa-user"></i>
@@ -170,13 +180,9 @@
         <button onclick="window.location.href='/rewards'" class="rewards-btn">
             <i class="fas fa-gift"></i> Canjear Recompensas
         </button>
-<!-- Pantalla de Recompensas -->
-        <div id="rewards-screen" class="screen">
-            <h1><i class="fas fa-gift"></i> Recompensas</h1>
-            <div id="rewards-container"></div>
-            <button onclick="showScreen('category-screen')"><i class="fas fa-arrow-left"></i> Volver</button>
-        </div>
+
     </div>
+
 </div>
 
 
@@ -190,6 +196,37 @@
 <!-- Script principal -->
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 <!-- Script de animaciones -->
-<script src="{{ url_for('static', filename='animations.js') }}"></script>
+<script>
+    // Mostrar/ocultar botón de cerrar sesión según el estado de la sesión
+    function updateLogoutButton() {
+        const logoutContainer = document.querySelector('.logout-container');
+        if (currentUser) {
+            logoutContainer.style.display = 'block';
+        } else {
+            logoutContainer.style.display = 'none';
+        }
+    }
+
+    // Actualizar visibilidad del botón de cerrar sesión cuando cambia el usuario
+    document.addEventListener('DOMContentLoaded', () => {
+        updateLogoutButton();
+    });
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/check_session');
+        const data = await response.json();
+        if (data.authenticated) {
+            currentUser = data.user;
+            document.querySelector('.logout-container').style.display = 'block';
+        } else {
+            document.querySelector('.logout-container').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error al verificar sesión:', error);
+    }
+});
+
+</script>
 </body>
 </html>

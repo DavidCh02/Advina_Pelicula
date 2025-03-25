@@ -1,301 +1,504 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recompensas - Adivina la Película con Emojis</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="icon" type="image/png" href="static/images/logo.png">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recompensas - Adivina la Película con Emojis</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <style>
+    /* Estilos generales */
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f2f2f2;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    h1, h2, h3 {
+      margin: 0 0 10px 0;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+    /* Botón de cerrar sesión */
+    .logout-btn {
+      background-color: #ff4d4d;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+      text-transform: uppercase;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    .logout-btn:hover {
+      background-color: #e53935;
+    }
+    .logout-container {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    /* Recompensas y grid */
+    .rewards-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .reward-category {
+      flex: 1 1 300px;
+      margin-bottom: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .reward-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .reward-item {
+      background-color: #f5f5f5;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .reward-item:hover {
+      transform: translateY(-5px);
+    }
+    .reward-item h3 {
+      color: #333;
+    }
+    .reward-item p {
+      color: #666;
+      margin: 5px 0;
+    }
+    .reward-item button {
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .reward-item button:hover {
+      background-color: #45a049;
+    }
+    /* Botón "Volver al Juego" */
+    .back-button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin: 20px 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    /* ==================== MODALES Y POPUPS ==================== */
+    /* Modal base (comentarios, recompensa, etc.) */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      position: relative;
+      max-width: 90%;
+      max-height: 80%;
+      overflow-y: auto;
+      text-align: center;
+    }
+    .modal-content img {
+      max-width: 100%;
+      height: auto;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #e74c3c;
+      color: #fff;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+    }
+    .download-btn {
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 5px;
+      margin-top: 15px;
+    }
+    /* Popup de Retroalimentación */
+    .popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #34a853;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      display: none;
+      z-index: 9999;
+      max-width: 250px;
+      max-height: 200px;
+      overflow: auto;
+      font-size: 19px;
+      white-space: normal;
+      word-wrap: break-word;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .popup.success { background-color: #34a853; }
+    .popup.error { background-color: #ea4335; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1><i class="fas fa-gift"></i> Recompensas Disponibles</h1>
-        <div class="rewards-grid">
-            <div class="reward-category">
-                <h2><i class="fas fa-laugh"></i> Memes</h2>
-                <div class="reward-items">
-                    <div class="reward-item" data-cost="50">
-                        <h3>Meme 1</h3>
-                        <p>7 puntos</p>
-                        <button onclick="claimReward('meme1', 7)">Canjear</button>
-                    </div>
-                    <div class="reward-item" data-cost="75">
-                        <h3>Meme 2</h3>
-                        <p>7 puntos</p>
-                        <button onclick="claimReward('meme2', 7)">Canjear</button>
-                    </div>
-                    <div class="reward-item" data-cost="100">
-                        <h3>Meme 3</h3>
-                        <p>10 puntos</p>
-                        <button onclick="claimReward('meme3', 10)">Canjear</button>
-                    </div>
-                </div>
-            </div>
-            <div class="reward-category">
-                <h2><i class="fas fa-id-card"></i> Tarjetas</h2>
-                <div class="reward-items">
-                    <div class="reward-item" data-cost="150">
-                        <h3>Tarjeta 1</h3>
-                        <p>15 puntos</p>
-                        <button onclick="claimReward('card1', 15)">Canjear</button>
-                    </div>
-                    <div class="reward-item" data-cost="200">
-                        <h3>Tarjeta 2</h3>
-                        <p>20 puntos</p>
-                        <button onclick="claimReward('card2', 20)">Canjear</button>
-                    </div>
-                </div>
-            </div>
-            <div class="reward-category">
-                <h2><i class="fas fa-image"></i> Fondos de Pantalla</h2>
-                <div class="reward-items">
-                    <div class="reward-item" data-cost="250">
-                        <h3>Fondo 1</h3>
-                        <p>25 puntos</p>
-                        <button onclick="claimReward('wallpaper1', 25)">Canjear</button>
-                    </div>
-                    <div class="reward-item" data-cost="300">
-                        <h3>Fondo 2</h3>
-                        <p>30 puntos</p>
-                        <button onclick="claimReward('wallpaper2', 30)">Canjear</button>
-                    </div>
-                </div>
-            </div>
-            <div class="reward-category">
-                <h2><i class="fas fa-certificate"></i> Certificados</h2>
-                <div class="reward-items">
-                    <div class="reward-item" data-cost="400">
-                        <h3>Certificado 1</h3>
-                        <p>40 puntos</p>
-                        <button onclick="claimReward('cert1', 40)">Canjear</button>
-                    </div>
-                    <div class="reward-item" data-cost="500">
-                        <h3>Certificado 2</h3>
-                        <p>50 puntos</p>
-                        <button onclick="claimReward('cert2', 50)">Canjear</button>
-                    </div>
-                </div>
-            </div>
+  <div class="container">
+    <!-- Botón de cerrar sesión (puede estar en un contenedor aparte si se desea) -->
+    <button id="secretRewardBtn" style="display: none;">Canjear recompensa secreta 🐛</button>
+    <h1><i class="fas fa-gift"></i> Recompensas Disponibles</h1>
+    <div class="rewards-grid">
+      <!-- Recompensas Estándar -->
+      <div class="reward-category">
+        <h2><i class="fas fa-laugh"></i> Memes</h2>
+        <div class="reward-items">
+          <div class="reward-item" data-id="meme1" data-cost="7">
+            <h3>Meme 1</h3>
+            <p>7 puntos</p>
+            <button class="standard-reward-btn">Canjear</button>
+          </div>
+          <div class="reward-item" data-id="meme2" data-cost="7">
+            <h3>Meme 2</h3>
+            <p>7 puntos</p>
+            <button class="standard-reward-btn">Canjear</button>
+          </div>
+          <div class="reward-item" data-id="meme3" data-cost="10">
+            <h3>Meme 3</h3>
+            <p>10 puntos</p>
+            <button class="standard-reward-btn">Canjear</button>
+          </div>
         </div>
-        <div class="user-points">
-            <h3>Tus Puntos: <span id="current-points">0</span></h3>
+      </div>
+      <div class="reward-category">
+        <h2><i class="fas fa-id-card"></i> Tarjetas</h2>
+        <div class="reward-items">
+          <div class="reward-item" data-id="card1" data-cost="15">
+            <h3>Tarjeta 1</h3>
+            <p>15 puntos</p>
+            <button class="standard-reward-btn">Canjear</button>
+          </div>
+          <div class="reward-item" data-id="card2" data-cost="20">
+            <h3>Tarjeta 2</h3>
+            <p>20 puntos</p>
+            <button class="standard-reward-btn">Canjear</button>
+          </div>
         </div>
-        <!-- Botón "Volver al Juego" -->
-        <button onclick="goToCategoryScreen()" class="back-button">
-            <i class="fas fa-arrow-left"></i> Volver a Jugar
-        </button>
+      </div>
+      <div class="reward-category">
+        <h2><i class="fas fa-image"></i> Fondos de Pantalla</h2>
+        <div class="reward-items">
+          <div class="reward-item" data-id="wallpaper1" data-cost="25">
+            <h3>Fondo 1</h3>
+            <p>25 puntos</p>
+            <button class="standard-reward-btn">Canjear</button>
+          </div>
+          <div class="reward-item" data-id="wallpaper2" data-cost="30">
+            <h3>Fondo 2</h3>
+            <p>30 puntos</p>
+            <button class="standard-reward-btn">Canjear</button>
+          </div>
+        </div>
+      </div>
+      <div class="reward-category">
+        <h2><i class="fas fa-certificate"></i> Certificados</h2>
+        <div class="reward-items">
+          <div class="reward-item" data-id="cert1" data-cost="40">
+            <h3>Certificado 1</h3>
+            <p>40 puntos</p>
+            <button class="standard-reward-btn">Canjear</button>
+          </div>
+          <div class="reward-item" data-id="cert2" data-cost="50">
+            <h3>Certificado 2</h3>
+            <p>50 puntos</p>
+            <button class="standard-reward-btn">Canjear</button>
+          </div>
+        </div>
+      </div>
+      <!-- Recompensas Especiales -->
+      <div class="reward-category">
+        <h2><i class="fas fa-star"></i> Especiales</h2>
+        <div class="reward-items">
+          <div class="reward-item" data-id="emoji_day" data-cost="5">
+            <h3>Tu emoji del día</h3>
+            <p>5 puntos</p>
+            <button class="special-reward-btn">Canjear</button>
+          </div>
+          <div class="reward-item" data-id="fun_fact" data-cost="5">
+            <h3>¿Dato curioso o divertido?</h3>
+            <p>5 puntos</p>
+            <button class="special-reward-btn">Canjear</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="feedback-popup" class="popup"></div>
-    <style>
-        .reward-item {
-            background-color: #f5f5f5;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        .reward-item:hover {
-            transform: translateY(-5px);
-        }
-        .reward-item h3 {
-            margin: 0;
-            color: #333;
-            font-size: 1.2em;
-        }
-        .reward-item p {
-            color: #666;
-            margin: 10px 0;
-        }
-        .reward-item button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .reward-item button:hover {
-            background-color: #45a049;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .modal img {
-            max-width: 90%;
-            max-height: 70vh;
-            object-fit: contain;
-            margin-bottom: 20px;
-        }
-        .modal .download-btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        .modal .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            color: white;
-            font-size: 30px;
-            cursor: pointer;
-        }
-        .popup {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #34a853;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            display: none;
-        }
-        .popup.error {
-            background-color: #ea4335;
-        }
-    </style>
-    <div id="rewardModal" class="modal">
-        <span class="close-btn">&times;</span>
-        <img id="modalImage" src="" alt="Reward Preview">
-        <button class="download-btn" style="display: none;">Descargar</button>
+    <div class="user-points">
+      <h3>Tus Puntos: <span id="current-points">0</span></h3>
     </div>
-    <script>
+    <!-- Botón "Volver al Juego" -->
+    <button onclick="backToGame()" class="back-button">
+      <i class="fas fa-arrow-left"></i> Volver a Jugar
+    </button>
+    <button onclick="logout()" class="logout-btn">
+      <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+    </button>
+    <!-- Botón para abrir la ventana emergente de comentarios -->
+    <button id="openCommentBtn">Dejar comentario anónimo</button>
+  </div>
 
-// Función para redirigir a la pantalla de selección de categoría
-function goToCategoryScreen() {
-    if (!currentUser) {
-        showFeedback('Debes iniciar sesión para jugar', false);
-        window.location.href = '/'; // Redirige a la página de inicio si no hay usuario
-        return;
-    }
-    showScreen('category-screen'); // Muestra la pantalla de selección de categoría
-}
-        let currentUser = null;
-        let userPoints = 0;
+  <!-- ==================== MODALES Y POPUPS (fuera del contenedor principal) ==================== -->
 
-        // Mostrar mensaje de retroalimentación
-        function showFeedback(message, isSuccess = true) {
-            const popup = document.getElementById('feedback-popup');
-            popup.textContent = message;
-            popup.className = `popup ${isSuccess ? 'success' : 'error'}`;
-            popup.style.display = 'block';
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 2500);
-        }
+  <!-- Ventana emergente para dejar comentarios -->
+  <div id="commentModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2>Dejar Comentario</h2>
+      <form id="commentForm">
+        <label for="comentario">Comentario:</label>
+        <textarea id="comentario" name="comentario" rows="4" cols="50" required></textarea><br><br>
+        <button type="button" id="submitCommentBtn">Enviar</button>
+      </form>
+    </div>
+  </div>
 
-        // Verificar sesión del usuario
-        fetch('/check_session')
-            .then(response => response.json())
-            .then(data => {
-                if (data.authenticated) {
-                    currentUser = data.user;
-                    userPoints = data.user.total_score;
-                    document.getElementById('current-points').textContent = userPoints;
-                } else {
-                    window.location.href = '/';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showFeedback('Error al verificar la sesión', false);
-            });
+  <!-- Modal emergente de recompensa -->
+  <div id="rewardModal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn">&times;</button>
+      <div id="modalBody">
+        <img id="modalImage" src="" alt="Vista Previa" style="display: none;">
+        <div id="modalText" style="display: none; font-size: 2.2em; color: #333; margin-top: 15px;"></div>
+      </div>
+      <button class="download-btn" style="display: none;">Descargar</button>
+    </div>
+  </div>
 
-        // Abrir modal de recompensa
-        function openRewardModal(rewardId, imagePath) {
-            const modal = document.getElementById('rewardModal');
-            const modalImg = document.getElementById('modalImage');
-            const downloadBtn = modal.querySelector('.download-btn');
+  <!-- Popup de Retroalimentación -->
+  <div id="feedback-popup" class="popup"></div>
 
-            modalImg.src = imagePath;
-            downloadBtn.style.display = 'block';
-            downloadBtn.onclick = () => downloadReward(imagePath);
+  <!-- ==================== SCRIPTS ==================== -->
+<script>
 
-            modal.style.display = 'flex';
-        }
+      let userPoints = 0, processing = false;
+      const currentPointsElem = document.getElementById('current-points'),
+      feedbackPopup = document.getElementById('feedback-popup'),
+      rewardModal = document.getElementById('rewardModal'),
+      modalImage = document.getElementById('modalImage'),
+      modalText = document.getElementById('modalText'),
+      downloadBtn = document.querySelector('.download-btn'),
+      closeModalBtn = document.querySelectorAll('.close-btn')[0],
+      secretRewardBtn = document.getElementById('secretRewardBtn'),
+      openCommentBtn = document.getElementById('openCommentBtn'),
+      commentModal = document.getElementById('commentModal'),
+      closeCommentBtn = commentModal.querySelector('.close-btn'),
+      submitCommentBtn = document.getElementById('submitCommentBtn'),
+      commentForm = document.getElementById('commentForm');
 
-        // Descargar imagen de recompensa
-        function downloadReward(imagePath) {
-            const link = document.createElement('a');
-            link.href = imagePath;
-            link.download = `reward-${Date.now()}.jpg`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+      function showFeedback(message, isSuccess = true) {
+      feedbackPopup.textContent = message;
+      feedbackPopup.className = `popup ${isSuccess ? 'success' : 'error'}`;
+      feedbackPopup.style.display = 'block';
+      setTimeout(() => {feedbackPopup.style.display = 'none';}, 2500);
+  }
 
-        // Canjear recompensa
-        function claimReward(rewardId, cost) {
-            if (!currentUser) {
-                showFeedback('Debes iniciar sesión para canjear recompensas', false);
-                return;
-            }
-            if (userPoints < cost) {
-                showFeedback('No tienes suficientes puntos para esta recompensa', false);
-                return;
-            }
+      function backToGame() {window.location.href = '/';}
 
-            fetch('/redeem_reward', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: currentUser.id,
-                    reward_id: rewardId,
-                    cost: cost
-                }),
-                credentials: 'include'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => Promise.reject(data.error || 'Error al canjear la recompensa'));
-                }
-                return response.json();
-            })
-            .then(data => {
-                showFeedback('¡Recompensa canjeada con éxito!');
-                userPoints = data.remaining_points;
-                document.getElementById('current-points').textContent = userPoints;
+      function checkSession() {
+      fetch('/check_session')
+              .then(response => response.json())
+              .then(data => {
+                  if (data.authenticated) {
+                      currentUser = data.user;
+                      userPoints = data.user.total_score;
+                      currentPointsElem.textContent = userPoints;
+                      localStorage.removeItem('cert2Claimed'); // Reinicia estado secreto al iniciar sesión
+                      updateSecretRewardButton();
+                  } else {
+                      window.location.href = '/';
+                  }
+              })
+              .catch(console.error);
+  }
 
-                // Mostrar modal con la imagen de la recompensa
-                const imagePath = `/static/images/rewards/${rewardId}.jpg`;
-                openRewardModal(rewardId, imagePath);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showFeedback(error.toString(), false);
-            });
-        }
+      function openRewardModal({rewardId, imagePath = '', textContent = ''}) {
+          modalText.innerHTML = '<p>Cargando...</p>';
+          modalText.style.display = 'block';
+          modalImage.style.display = 'none';
+          downloadBtn.style.display = 'none';
+          rewardModal.style.display = 'flex';
 
-        // Cerrar modal al hacer clic fuera de él
-        window.onclick = (event) => {
-            const modal = document.getElementById('rewardModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        };
+          if (imagePath) {
+              const img = new Image();
+              img.onload = function () {
+                  modalImage.src = imagePath;
+                  modalImage.style.display = 'block';
+                  downloadBtn.style.display = 'inline-block';
+                  modalText.style.display = 'none';
 
-        // Cerrar modal al hacer clic en el botón de cierre
-        document.querySelector('#rewardModal .close-btn').onclick = () => {
-            const modal = document.getElementById('rewardModal');
-            modal.style.display = 'none';
-        };
-    </script>
+                  // Asignar evento al botón de descarga
+                  downloadBtn.onclick = () => downloadReward(imagePath);
+              };
+              img.onerror = function () {
+                  modalText.innerHTML = '<p>Error al cargar la imagen.</p>';
+              };
+              img.src = imagePath;
+          } else if (textContent) {
+              modalText.innerHTML = textContent;
+              modalText.style.display = 'block';
+              modalImage.style.display = 'none';
+              downloadBtn.style.display = 'none';
+          }
+      }
+
+      // Función para descargar la imagen
+      function downloadReward(imagePath) {
+          const link = document.createElement('a');
+          link.href = imagePath;
+          link.download = `reward-${Date.now()}.jpg`; // Nombre del archivo a descargar
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+      }
+
+
+      function redeemReward(rewardId, cost, callbackOnSuccess) {
+      if (!currentUser) {showFeedback('Debes iniciar sesión para canjear recompensas', false); return;}
+      if (userPoints < cost) {showFeedback('No tienes suficientes puntos para esta recompensa', false); return;}
+      if (processing) return; processing = true;
+
+      fetch('/redeem_reward', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({user_id: currentUser.id, reward_id: rewardId, cost: cost}),
+      credentials: 'include'
+  })
+      .then(response => response.json().then(data => {if (!response.ok) return Promise.reject(data.error); return data;}))
+      .then(data => {
+      showFeedback('¡Recompensa canjeada con éxito!');
+      userPoints = data.remaining_points;
+      currentPointsElem.textContent = userPoints;
+      if (rewardId === 'cert2') localStorage.setItem('cert2Claimed', 'true');
+      updateSecretRewardButton();
+      if (typeof callbackOnSuccess === 'function') callbackOnSuccess();
+  })
+      .catch(error => {console.error(error); showFeedback(error.toString(), false);})
+      .finally(() => {processing = false;});
+  }
+
+      document.querySelectorAll('.standard-reward-btn').forEach(button => {
+      button.addEventListener("click", () => {
+          const parent = button.parentElement,
+                  rewardId = parent.getAttribute("data-id"),
+                  cost = parseInt(parent.getAttribute("data-cost"));
+          redeemReward(rewardId, cost, () => {
+              const imagePath = `/static/images/rewards/${rewardId}.jpg`;
+              openRewardModal({rewardId, imagePath});
+          });
+      });
+  });
+
+      document.querySelectorAll('.special-reward-btn').forEach(button => {
+      button.addEventListener("click", () => {
+          const parent = button.parentElement,
+                  rewardId = parent.getAttribute("data-id"),
+                  cost = parseInt(parent.getAttribute("data-cost"));
+          redeemReward(rewardId, cost, () => {
+              getSpecialReward(rewardId);
+          });
+      });
+  });
+
+      async function getSpecialReward(type) {
+      try {
+      const file = type === "emoji_day" ? "emoji_descriptions.json" : "fun_facts.json";
+      const response = await fetch(`/static/data/${file}`),
+      data = await response.json();
+      let textContent = '';
+      if (type === "emoji_day") {
+      const randomIndex = Math.floor(Math.random() * data.emoji_descriptions.length),
+      reward = data.emoji_descriptions[randomIndex];
+      textContent = `<span style="font-size: 3em; display: block; text-align: center;">${reward.emoji}</span><p>${reward.description}</p>`;
+  } else {
+      const randomIndex = Math.floor(Math.random() * data.fun_facts.length),
+      fact = data.fun_facts[randomIndex];
+      textContent = `<strong>Dato Curioso:</strong> ${fact}`;
+  }
+      openRewardModal({rewardId: type, textContent});
+  } catch (error) {
+      console.error("Error al obtener recompensa especial:", error);
+      showFeedback('Error al obtener recompensa especial', false);
+  }
+  }
+
+      secretRewardBtn.addEventListener("click", () => {
+      const imagePath = "/static/images/rewards/secret_reward.jpg";
+      openRewardModal({imagePath});
+  });
+
+      function updateSecretRewardButton() {
+      secretRewardBtn.style.display = localStorage.getItem('cert2Claimed') === "true" ? 'block' : 'none';
+  }
+
+      window.addEventListener("click", event => {
+      if (event.target === rewardModal) rewardModal.style.display = "none";
+      if (event.target === commentModal) commentModal.style.display = "none";
+  });
+      closeModalBtn.addEventListener("click", () => {rewardModal.style.display = "none";});
+      document.addEventListener('DOMContentLoaded', checkSession);
+      openCommentBtn.addEventListener('click', () => {commentModal.style.display = 'block';});
+      closeCommentBtn.addEventListener('click', () => {commentModal.style.display = 'none';});
+      submitCommentBtn.addEventListener('click', () => {
+      const comentario = document.getElementById('comentario').value;
+      if (!comentario.trim()) {showFeedback('El comentario no puede estar vacío', false); return;}
+      fetch('/submit_comment', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({comentario})
+  })
+      .then(response => response.json())
+      .then(data => {
+      showFeedback('Comentario enviado con éxito', true);
+      commentModal.style.display = 'none';
+      commentForm.reset();
+  })
+      .catch(error => {console.error('Error:', error); showFeedback('Error al enviar el comentario', false);});
+  });
+
+</script>
+
 </body>
 </html>
