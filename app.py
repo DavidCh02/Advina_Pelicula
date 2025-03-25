@@ -31,6 +31,9 @@ GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0
 # Load movie data
 with open('emojis.json', 'r', encoding='utf-8') as f:
     movies_data = json.load(f)
+    
+from flask import Flask
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 # -------------------- MODELOS DE BASE DE DATOS --------------------
 
