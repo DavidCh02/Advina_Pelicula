@@ -119,15 +119,21 @@ def check_session():
         if user:
             # Obtener el puntaje total del usuario
             total_score = db.session.query(db.func.sum(Score.player_score)).filter_by(user_id=user.id).scalar() or 0
+
+            # Verificar si el usuario ya canjeó la recompensa "cert2"
+            has_cert2 = db.session.query(UserReward).filter_by(user_id=user.id, reward_id="cert2").first() is not None
+
             return jsonify({
                 'authenticated': True,
                 'user': {
                     'id': user.id,
                     'username': user.username,
                     'total_score': total_score
-                }
+                },
+                'has_cert2': has_cert2  # Incluir si ya tiene la recompensa "cert2"
             })
     return jsonify({'authenticated': False})
+
 
 @app.route('/get_movie', methods=['POST'])
 def get_movie():
