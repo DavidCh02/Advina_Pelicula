@@ -152,17 +152,17 @@ async function checkAnswer(selected, correct) {
 
     try {
         if (selected === correct) {
-            playerScore += 2;
-            showPopup('¡Correcto! +2 puntos', true);
+            playerScore += 4;
+            showPopup('¡Correcto! +4 puntos', true);
         } else {
-            aiScore += 1;
+            aiScore += 2;
             showPopup(`Incorrecto. La respuesta era: ${correct}`, false);
         }
 
         updateScores();
         await saveScore();
 
-        if (currentRound < 10) {
+        if (currentRound < 5) {
             setTimeout(startAITurn, 1500); // Inicia el turno de la IA con un pequeño delay
         } else {
             await endGame();
@@ -293,17 +293,17 @@ async function evaluateAI(isCorrect) {
 
     try {
         if (isCorrect) {
-            aiScore += 2;
-            showPopup('¡La IA acertó! +2 puntos', false);
+            aiScore += 4;
+            showPopup('¡La IA acertó! +4 puntos', false);
         } else {
-            playerScore += 1;
+            playerScore += 2;
             showPopup('La IA falló, que mal :c', true);
         }
 
         updateScores();
         await saveScore();
 
-        if (currentRound < 10) {
+        if (currentRound < 5) {
             currentRound++; // La ronda solo avanza aquí
             setTimeout(startPlayerTurn, 1500); // Regresa al jugador
         } else {
