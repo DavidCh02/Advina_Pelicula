@@ -313,190 +313,220 @@
   <!-- ==================== SCRIPTS ==================== -->
 <script>
 
-      let userPoints = 0, processing = false;
-      const currentPointsElem = document.getElementById('current-points'),
-      feedbackPopup = document.getElementById('feedback-popup'),
-      rewardModal = document.getElementById('rewardModal'),
-      modalImage = document.getElementById('modalImage'),
-      modalText = document.getElementById('modalText'),
-      downloadBtn = document.querySelector('.download-btn'),
-      closeModalBtn = document.querySelectorAll('.close-btn')[0],
-      secretRewardBtn = document.getElementById('secretRewardBtn'),
-      openCommentBtn = document.getElementById('openCommentBtn'),
-      commentModal = document.getElementById('commentModal'),
-      closeCommentBtn = commentModal.querySelector('.close-btn'),
-      submitCommentBtn = document.getElementById('submitCommentBtn'),
-      commentForm = document.getElementById('commentForm');
+    let userPoints = 0, processing = false;
+    const currentPointsElem = document.getElementById('current-points'),
+            feedbackPopup = document.getElementById('feedback-popup'),
+            rewardModal = document.getElementById('rewardModal'),
+            modalImage = document.getElementById('modalImage'),
+            modalText = document.getElementById('modalText'),
+            downloadBtn = document.querySelector('.download-btn'),
+            closeModalBtn = document.querySelector('.close-btn'),
+            secretRewardBtn = document.getElementById('secretRewardBtn'),
+            openCommentBtn = document.getElementById('openCommentBtn'),
+            commentModal = document.getElementById('commentModal'),
+            closeCommentBtn = commentModal?.querySelector('.close-btn'),
+            submitCommentBtn = document.getElementById('submitCommentBtn'),
+            commentForm = document.getElementById('commentForm');
 
-      function showFeedback(message, isSuccess = true) {
-      feedbackPopup.textContent = message;
-      feedbackPopup.className = `popup ${isSuccess ? 'success' : 'error'}`;
-      feedbackPopup.style.display = 'block';
-      setTimeout(() => {feedbackPopup.style.display = 'none';}, 2500);
-  }
+    function showFeedback(message, isSuccess = true) {
+        feedbackPopup.textContent = message;
+        feedbackPopup.className = `popup ${isSuccess ? 'success' : 'error'}`;
+        feedbackPopup.style.display = 'block';
+        setTimeout(() => {
+            feedbackPopup.style.display = 'none';
+        }, 2500);
+    }
 
-      function backToGame() {window.location.href = '/';}
+    function backToGame() {
+        window.location.href = '/';
+    }
 
-      function checkSession() {
-      fetch('/check_session')
-              .then(response => response.json())
-              .then(data => {
-                  if (data.authenticated) {
-                      currentUser = data.user;
-                      userPoints = data.user.total_score;
-                      currentPointsElem.textContent = userPoints;
-                      localStorage.removeItem('cert2Claimed'); // Reinicia estado secreto al iniciar sesión
-                      updateSecretRewardButton();
-                  } else {
-                      window.location.href = '/';
-                  }
-              })
-              .catch(console.error);
-  }
+    function checkSession() {
+        fetch('/check_session')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.authenticated) {
+                        currentUser = data.user;
+                        userPoints = data.user.total_score;
+                        currentPointsElem.textContent = userPoints;
 
-      function openRewardModal({rewardId, imagePath = '', textContent = ''}) {
-          modalText.innerHTML = '<p>Cargando...</p>';
-          modalText.style.display = 'block';
-          modalImage.style.display = 'none';
-          downloadBtn.style.display = 'none';
-          rewardModal.style.display = 'flex';
+                        // Restaurar estado del botón secreto
+                        if (currentUser && secretRewardBtn) {
+                            const secretClaimed = localStorage.getItem(`cert2Claimed_${currentUser.id}`);
+                            secretRewardBtn.style.display = secretClaimed === 'true' ? 'block' : 'none';
+                        }
 
-          if (imagePath) {
-              const img = new Image();
-              img.onload = function () {
-                  modalImage.src = imagePath;
-                  modalImage.style.display = 'block';
-                  downloadBtn.style.display = 'inline-block';
-                  modalText.style.display = 'none';
+                        updateSecretRewardButton();
+                    } else {
+                        window.location.href = '/';
+                    }
+                })
+                .catch(error => console.error('Error al verificar sesión:', error));
+    }
 
-                  // Asignar evento al botón de descarga
-                  downloadBtn.onclick = () => downloadReward(imagePath);
-              };
-              img.onerror = function () {
-                  modalText.innerHTML = '<p>Error al cargar la imagen.</p>';
-              };
-              img.src = imagePath;
-          } else if (textContent) {
-              modalText.innerHTML = textContent;
-              modalText.style.display = 'block';
-              modalImage.style.display = 'none';
-              downloadBtn.style.display = 'none';
-          }
-      }
+    function openRewardModal({rewardId, imagePath = '', textContent = ''}) {
+        modalText.innerHTML = '<p>Cargando...</p>';
+        modalText.style.display = 'block';
+        modalImage.style.display = 'none';
+        downloadBtn.style.display = 'none';
+        rewardModal.style.display = 'flex';
 
-      // Función para descargar la imagen
-      function downloadReward(imagePath) {
-          const link = document.createElement('a');
-          link.href = imagePath;
-          link.download = `reward-${Date.now()}.jpg`; // Nombre del archivo a descargar
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-      }
+        if (imagePath) {
+            const img = new Image();
+            img.onload = function () {
+                modalImage.src = imagePath;
+                modalImage.style.display = 'block';
+                downloadBtn.style.display = 'inline-block';
+                modalText.style.display = 'none';
+                downloadBtn.onclick = () => downloadReward(imagePath);
+            };
+            img.onerror = function () {
+                modalText.innerHTML = '<p>Error al cargar la imagen.</p>';
+            };
+            img.src = imagePath;
+        } else if (textContent) {
+            modalText.innerHTML = textContent;
+            modalText.style.display = 'block';
+            modalImage.style.display = 'none';
+            downloadBtn.style.display = 'none';
+        }
+    }
+
+    // Función para descargar la imagen de forma segura
+    function downloadReward(imagePath) {
+        fetch(imagePath)
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `reward-${Date.now()}.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                })
+                .catch(error => console.error('Error al descargar la imagen:', error));
+    }
+
+    function redeemReward(rewardId, cost, callbackOnSuccess) {
+        if (!currentUser) {
+            showFeedback('Debes iniciar sesión para canjear recompensas', false);
+            return;
+        }
+
+        // Verificar si el usuario tiene suficientes puntos
+        if (userPoints < cost) {
+            showFeedback('No tienes suficientes puntos para esta recompensa', false);
+            return;
+        }
+
+        if (processing) return;
+        processing = true;
+
+        fetch('/redeem_reward', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({user_id: currentUser.id, reward_id: rewardId, cost: cost}),
+            credentials: 'include'
+        })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    showFeedback('¡Recompensa canjeada con éxito!');
+
+                    // Reducir puntos del usuario en la interfaz
+                    userPoints -= cost;
+                    currentPointsElem.textContent = userPoints;
+
+                    if (typeof callbackOnSuccess === 'function') callbackOnSuccess();
+                })
+                .catch(error => {
+                    console.error('Error al canjear recompensa:', error);
+                    showFeedback(error.message, false);
+                })
+                .finally(() => {
+                    processing = false;
+                });
+    }
 
 
-      function redeemReward(rewardId, cost, callbackOnSuccess) {
-      if (!currentUser) {showFeedback('Debes iniciar sesión para canjear recompensas', false); return;}
-      if (userPoints < cost) {showFeedback('No tienes suficientes puntos para esta recompensa', false); return;}
-      if (processing) return; processing = true;
+    function updateSecretRewardButton() {
+        if (currentUser && secretRewardBtn) {
+            const secretClaimed = localStorage.getItem(`cert2Claimed_${currentUser.id}`);
+            secretRewardBtn.style.display = secretClaimed === 'true' ? 'block' : 'none';
+        }
+    }
 
-      fetch('/redeem_reward', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({user_id: currentUser.id, reward_id: rewardId, cost: cost}),
-      credentials: 'include'
-  })
-      .then(response => response.json().then(data => {if (!response.ok) return Promise.reject(data.error); return data;}))
-      .then(data => {
-      showFeedback('¡Recompensa canjeada con éxito!');
-      userPoints = data.remaining_points;
-      currentPointsElem.textContent = userPoints;
-      if (rewardId === 'cert2') localStorage.setItem('cert2Claimed', 'true');
-      updateSecretRewardButton();
-      if (typeof callbackOnSuccess === 'function') callbackOnSuccess();
-  })
-      .catch(error => {console.error(error); showFeedback(error.toString(), false);})
-      .finally(() => {processing = false;});
-  }
+    // Asegurar que el botón se restaure al cargar la página
+    document.addEventListener('DOMContentLoaded', checkSession);
 
-      document.querySelectorAll('.standard-reward-btn').forEach(button => {
-      button.addEventListener("click", () => {
-          const parent = button.parentElement,
-                  rewardId = parent.getAttribute("data-id"),
-                  cost = parseInt(parent.getAttribute("data-cost"));
-          redeemReward(rewardId, cost, () => {
-              const imagePath = `/static/images/rewards/${rewardId}.jpg`;
-              openRewardModal({rewardId, imagePath});
-          });
-      });
-  });
+    document.querySelectorAll('.standard-reward-btn').forEach(button => {
+        button.addEventListener("click", () => {
+            const parent = button.parentElement,
+                    rewardId = parent.getAttribute("data-id"),
+                    cost = parseInt(parent.getAttribute("data-cost"));
+            redeemReward(rewardId, cost, () => {
+                const imagePath = `/static/images/rewards/${rewardId}.jpg`;
+                openRewardModal({rewardId, imagePath});
+            });
+        });
+    });
 
-      document.querySelectorAll('.special-reward-btn').forEach(button => {
-      button.addEventListener("click", () => {
-          const parent = button.parentElement,
-                  rewardId = parent.getAttribute("data-id"),
-                  cost = parseInt(parent.getAttribute("data-cost"));
-          redeemReward(rewardId, cost, () => {
-              getSpecialReward(rewardId);
-          });
-      });
-  });
+    document.querySelectorAll('.special-reward-btn').forEach(button => {
+        button.addEventListener("click", () => {
+            const parent = button.parentElement,
+                    rewardId = parent.getAttribute("data-id"),
+                    cost = parseInt(parent.getAttribute("data-cost"));
+            redeemReward(rewardId, cost, () => {
+                getSpecialReward(rewardId);
+            });
+        });
+    });
 
-      async function getSpecialReward(type) {
-      try {
-      const file = type === "emoji_day" ? "emoji_descriptions.json" : "fun_facts.json";
-      const response = await fetch(`/static/data/${file}`),
-      data = await response.json();
-      let textContent = '';
-      if (type === "emoji_day") {
-      const randomIndex = Math.floor(Math.random() * data.emoji_descriptions.length),
-      reward = data.emoji_descriptions[randomIndex];
-      textContent = `<span style="font-size: 3em; display: block; text-align: center;">${reward.emoji}</span><p>${reward.description}</p>`;
-  } else {
-      const randomIndex = Math.floor(Math.random() * data.fun_facts.length),
-      fact = data.fun_facts[randomIndex];
-      textContent = `<strong>Dato Curioso:</strong> ${fact}`;
-  }
-      openRewardModal({rewardId: type, textContent});
-  } catch (error) {
-      console.error("Error al obtener recompensa especial:", error);
-      showFeedback('Error al obtener recompensa especial', false);
-  }
-  }
+    async function getSpecialReward(type) {
+        try {
+            const file = type === "emoji_day" ? "emoji_descriptions.json" : "fun_facts.json";
+            const response = await fetch(`/static/data/${file}`);
+            const data = await response.json();
+            let textContent = '';
 
-      secretRewardBtn.addEventListener("click", () => {
-      const imagePath = "/static/images/rewards/secret_reward.jpg";
-      openRewardModal({imagePath});
-  });
+            if (type === "emoji_day") {
+                const randomIndex = Math.floor(Math.random() * data.emoji_descriptions.length);
+                const reward = data.emoji_descriptions[randomIndex];
+                textContent = `<span style="font-size: 3em; display: block; text-align: center;">${reward.emoji}</span><p>${reward.description}</p>`;
+            } else {
+                const randomIndex = Math.floor(Math.random() * data.fun_facts.length);
+                const fact = data.fun_facts[randomIndex];
+                textContent = `<strong>Dato Curioso:</strong> ${fact}`;
+            }
+            openRewardModal({rewardId: type, textContent});
+        } catch (error) {
+            console.error("Error al obtener recompensa especial:", error);
+            showFeedback('Error al obtener recompensa especial', false);
+        }
+    }
 
-      function updateSecretRewardButton() {
-      secretRewardBtn.style.display = localStorage.getItem('cert2Claimed') === "true" ? 'block' : 'none';
-  }
+    if (secretRewardBtn) {
+        secretRewardBtn.addEventListener("click", () => {
+            const imagePath = "/static/images/rewards/secret_reward.jpg";
+            openRewardModal({imagePath});
+        });
+    }
 
-      window.addEventListener("click", event => {
-      if (event.target === rewardModal) rewardModal.style.display = "none";
-      if (event.target === commentModal) commentModal.style.display = "none";
-  });
-      closeModalBtn.addEventListener("click", () => {rewardModal.style.display = "none";});
-      document.addEventListener('DOMContentLoaded', checkSession);
-      openCommentBtn.addEventListener('click', () => {commentModal.style.display = 'block';});
-      closeCommentBtn.addEventListener('click', () => {commentModal.style.display = 'none';});
-      submitCommentBtn.addEventListener('click', () => {
-      const comentario = document.getElementById('comentario').value;
-      if (!comentario.trim()) {showFeedback('El comentario no puede estar vacío', false); return;}
-      fetch('/submit_comment', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({comentario})
-  })
-      .then(response => response.json())
-      .then(data => {
-      showFeedback('Comentario enviado con éxito', true);
-      commentModal.style.display = 'none';
-      commentForm.reset();
-  })
-      .catch(error => {console.error('Error:', error); showFeedback('Error al enviar el comentario', false);});
-  });
+    window.addEventListener("click", event => {
+        if (event.target === rewardModal) rewardModal.style.display = "none";
+        if (event.target === commentModal) commentModal.style.display = "none";
+    });
+    closeModalBtn?.addEventListener("click", () => {
+        rewardModal.style.display = "none";
+    });
+    openCommentBtn?.addEventListener('click', () => {
+        commentModal.style.display = 'block';
+    });
+    closeCommentBtn?.addEventListener('click', () => {
+        commentModal.style.display = 'none';
+    });
 
 </script>
 
