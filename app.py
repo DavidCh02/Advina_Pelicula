@@ -1,26 +1,21 @@
 from flask import Flask, request, jsonify, render_template, session
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+
 from datetime import datetime
-import json
 import random
 import requests
-from functools import wraps
-import os
-from sqlalchemy import text
+
+
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+import json
 
 # Inicializa la aplicación Flask
 app = Flask(__name__)
 app.secret_key = 'https://api.render.com/deploy/srv-cvhfr4ggph6c73fl381g?key=s8zsOaO0sik'  # Clave secreta para la gestión de sesión
 
-# Configuración de la base de datos con SSL para pg8000
-DB_URL = "postgresql+pg8000://ultimo_humano_user:q83MoA2qaSlEbzKce2WnkXEt9z5LjfOO@dpg-cv4959qj1k6c738evoog-a.oregon-postgres.render.com/ultimo_humano"
+# Configuración de la base de datos con SSL para psycopg2
+DB_URL = "postgresql://adivinapelicula_user:rOsKfb9LgrZdDHHPQvf1Whmhx1FMlLVT@dpg-cvrl9e8gjchc73bcc720-a.oregon-postgres.render.com/adivinapelicula?sslmode=require"
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    "connect_args": {
-        "ssl_context": True  # Habilita SSL para pg8000
-    }
-}
 
 db = SQLAlchemy(app)
 
